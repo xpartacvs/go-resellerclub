@@ -1,7 +1,12 @@
 package domain
 
 import (
+	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
+	"net/url"
+	"sync"
 
 	"github.com/xpartacvs/go-resellerclub/core"
 )
@@ -11,7 +16,8 @@ type domain struct {
 }
 
 type Domain interface {
-	GetRegistrationOrders(criteria SearchCriteria) error
+	SearchRegistrationOrders(criteria SearchCriteria) error
+	CheckAvailability(domainsWithoutTLD, tlds []string) (DomainAvailabilities, error)
 }
 
 func New(c core.Core) Domain {
@@ -20,7 +26,50 @@ func New(c core.Core) Domain {
 	}
 }
 
-func (d *domain) GetRegistrationOrders(criteria SearchCriteria) error {
+func (d *domain) CheckAvailability(domainsWithoutTLD, tlds []string) (DomainAvailabilities, error) {
+	if len(domainsWithoutTLD) <= 0 || len(tlds) <= 0 {
+		return DomainAvailabilities{}, errors.New("domainnames and tlds must not empty")
+	}
+
+	data := url.Values{}
+	var wg sync.WaitGroup
+	for _, v := range domainsWithoutTLD {
+		wg.Add(1)
+		go func(value string) {
+			defer wg.Done()
+			data.Add("domain-name", value)
+		}(v)
+	}
+	for _, v := range tlds {
+		wg.Add(1)
+		go func(value string) {
+			defer wg.Done()
+			data.Add("tlds", value)
+		}(v)
+	}
+	wg.Wait()
+
+	resp, err := d.core.CallApi(http.MethodGet, "domains", "available", data)
+	if err != nil {
+		return DomainAvailabilities{}, err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return DomainAvailabilities{}, err
+	}
+
+	availabilities := DomainAvailabilities{}
+	err = json.Unmarshal(bytesResp, &availabilities)
+	if err != nil {
+		return DomainAvailabilities{}, err
+	}
+
+	return availabilities, nil
+}
+
+func (d *domain) SearchRegistrationOrders(criteria SearchCriteria) error {
 	urlValues, err := criteria.UrlValues()
 	if err != nil {
 		return err
@@ -30,6 +79,13 @@ func (d *domain) GetRegistrationOrders(criteria SearchCriteria) error {
 		return err
 	}
 	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	d.core.PrintResponse(bytesResp)
 
 	return nil
 }

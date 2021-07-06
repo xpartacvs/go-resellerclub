@@ -4,6 +4,7 @@ type SortBy string
 type DomainKey string
 type OrderStatus string
 type PrivacyState string
+type DomainRegistrationStatus string
 type SortOrder map[SortBy]bool
 
 const (
@@ -273,4 +274,9 @@ const (
 	PrivacyEnabled     PrivacyState = "true"
 	PrivacyDisabled    PrivacyState = "false"
 	PrivacyUnsupported PrivacyState = "na"
+
+	DomRegUnknown       DomainRegistrationStatus = "unknown"
+	DomRegUnregistered  DomainRegistrationStatus = "available"
+	DomRegThroughUs     DomainRegistrationStatus = "regthroughus"
+	DomRegThroughOthers DomainRegistrationStatus = "regthroughothers"
 )

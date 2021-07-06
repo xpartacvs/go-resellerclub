@@ -57,7 +57,7 @@ func (c SearchCriteria) UrlValues() (url.Values, error) {
 				case reflect.Uint8, reflect.Uint16, reflect.Uint:
 					urlValues.Add(queryField, fmt.Sprintf("%d", vField.Uint()))
 				case reflect.String:
-					urlValues.Add(queryField, fmt.Sprintf("%s", vField.String()))
+					urlValues.Add(queryField, vField.String())
 				case reflect.Bool:
 					urlValues.Add(queryField, fmt.Sprintf("%t", vField.Bool()))
 				case reflect.Struct:
@@ -72,7 +72,7 @@ func (c SearchCriteria) UrlValues() (url.Values, error) {
 						case reflect.Uint:
 							urlValues.Add(queryField, fmt.Sprintf("%d", vSlice.Uint()))
 						case reflect.String:
-							urlValues.Add(queryField, fmt.Sprintf("%s", vSlice.String()))
+							urlValues.Add(queryField, vSlice.String())
 						case reflect.Map:
 							if vSlice.Type().ConvertibleTo(reflect.TypeOf(SortOrder{})) {
 								vSortOrder := vSlice.Interface().(SortOrder)
@@ -85,7 +85,7 @@ func (c SearchCriteria) UrlValues() (url.Values, error) {
 										if value {
 											vQuery += " desc"
 										}
-										urlValues.Add(queryField, fmt.Sprintf("%s", vQuery))
+										urlValues.Add(queryField, vQuery)
 									}(k, desc)
 								}
 								wgSortOrder.Wait()

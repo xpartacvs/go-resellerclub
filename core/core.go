@@ -1,10 +1,13 @@
 package core
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 type OutputFormat string
@@ -18,6 +21,7 @@ type core struct {
 
 type Core interface {
 	CallApi(method, namespace, apiName string, data url.Values) (*http.Response, error)
+	PrintResponse(data []byte) error
 }
 
 const (
@@ -30,8 +34,18 @@ var (
 		true:  "https://httpapi.com/api",
 		false: "https://test.httpapi.com/api",
 	}
+
 	ErrRcApiUnsupportedMethod = errors.New("unsupported http method")
 )
+
+func (c *core) PrintResponse(data []byte) error {
+	var buffer bytes.Buffer
+	if err := json.Indent(&buffer, data, "", "\t"); err != nil {
+		return err
+	}
+	buffer.WriteTo(os.Stdout)
+	return nil
+}
 
 func (c *core) CallApi(method, namespace, apiName string, data url.Values) (*http.Response, error) {
 	urlPath := c.createUrlPath(namespace, apiName)
