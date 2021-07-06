@@ -29,14 +29,14 @@ type SearchCriteria struct {
 	TimeExpiryEnd     time.Time     `validate:"omitempty" query:"expiry-date-start,omitempty"`
 }
 
-func (c SearchCriteria) Marshal() (string, error) {
+func (c SearchCriteria) UrlValues() (url.Values, error) {
 	if err := validator.New().Struct(c); err != nil {
-		return "", err
+		return url.Values{}, err
 	}
 
-	var queryPairs []string
 	var wg sync.WaitGroup
 
+	urlValues := url.Values{}
 	valueCriteria := reflect.ValueOf(c)
 	typeCriteria := reflect.TypeOf(c)
 
@@ -55,30 +55,24 @@ func (c SearchCriteria) Marshal() (string, error) {
 
 				switch vField.Kind() {
 				case reflect.Uint8, reflect.Uint16, reflect.Uint:
-					queryString := fmt.Sprintf("%s=%d", queryField, vField.Uint())
-					queryPairs = append(queryPairs, queryString)
+					urlValues.Add(queryField, fmt.Sprintf("%d", vField.Uint()))
 				case reflect.String:
-					queryString := fmt.Sprintf("%s=%s", queryField, url.QueryEscape(vField.String()))
-					queryPairs = append(queryPairs, queryString)
+					urlValues.Add(queryField, fmt.Sprintf("%s", vField.String()))
 				case reflect.Bool:
-					queryString := fmt.Sprintf("%s=%t", queryField, vField.Bool())
-					queryPairs = append(queryPairs, queryString)
+					urlValues.Add(queryField, fmt.Sprintf("%t", vField.Bool()))
 				case reflect.Struct:
 					if vField.Type().ConvertibleTo(reflect.TypeOf(time.Time{})) {
 						timeField := vField.Interface().(time.Time)
-						queryString := fmt.Sprintf("%s=%d", queryField, timeField.Unix())
-						queryPairs = append(queryPairs, queryString)
+						urlValues.Add(queryField, fmt.Sprintf("%d", timeField.Unix()))
 					}
 				case reflect.Slice:
 					for j := 0; j < vField.Len(); j++ {
 						vSlice := vField.Index(j)
 						switch vSlice.Type().Kind() {
 						case reflect.Uint:
-							queryString := fmt.Sprintf("%s=%d", queryField, vSlice.Uint())
-							queryPairs = append(queryPairs, queryString)
+							urlValues.Add(queryField, fmt.Sprintf("%d", vSlice.Uint()))
 						case reflect.String:
-							queryString := fmt.Sprintf("%s=%s", queryField, url.QueryEscape(vSlice.String()))
-							queryPairs = append(queryPairs, queryString)
+							urlValues.Add(queryField, fmt.Sprintf("%s", vSlice.String()))
 						case reflect.Map:
 							if vSlice.Type().ConvertibleTo(reflect.TypeOf(SortOrder{})) {
 								vSortOrder := vSlice.Interface().(SortOrder)
@@ -91,8 +85,7 @@ func (c SearchCriteria) Marshal() (string, error) {
 										if value {
 											vQuery += " desc"
 										}
-										queryString := fmt.Sprintf("%s=%s", queryField, url.QueryEscape(vQuery))
-										queryPairs = append(queryPairs, queryString)
+										urlValues.Add(queryField, fmt.Sprintf("%s", vQuery))
 									}(k, desc)
 								}
 								wgSortOrder.Wait()
@@ -106,5 +99,5 @@ func (c SearchCriteria) Marshal() (string, error) {
 	}
 
 	wg.Wait()
-	return strings.Join(queryPairs, "&"), nil
+	return urlValues, nil
 }

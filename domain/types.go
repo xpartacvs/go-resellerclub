@@ -274,7 +274,3 @@ const (
 	PrivacyDisabled    PrivacyState = "false"
 	PrivacyUnsupported PrivacyState = "na"
 )
-
-type Marshaler interface {
-	Marshal() (string, error)
-}

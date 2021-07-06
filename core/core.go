@@ -1,7 +1,9 @@
 package core
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 )
 
@@ -15,8 +17,7 @@ type core struct {
 }
 
 type Core interface {
-	Call(method, namespace, apiName, queryStrings string)
-	CallWithQueryStringGeneratorFunc(method, namespace, apiName string, queryStringGenerator func(p ...interface{}) string, params ...interface{})
+	CallApi(method, namespace, apiName string, data url.Values) (*http.Response, error)
 }
 
 const (
@@ -29,22 +30,18 @@ var (
 		true:  "https://httpapi.com/api",
 		false: "https://test.httpapi.com/api",
 	}
+	ErrRcApiUnsupportedMethod = errors.New("unsupported http method")
 )
 
-func (c *core) Call(method, namespace, apiName, queryStrings string) {
+func (c *core) CallApi(method, namespace, apiName string, data url.Values) (*http.Response, error) {
 	urlPath := c.createUrlPath(namespace, apiName)
-
-	queryString := fmt.Sprintf(
-		"%s&%s",
-		c.createRequiredQueryString(),
-		queryStrings,
-	)
-
-	fmt.Println(urlPath, queryString)
-}
-
-func (c *core) CallWithQueryStringGeneratorFunc(method, namespace, apiName string, queryStringGenerator func(p ...interface{}) string, params ...interface{}) {
-	c.Call(method, namespace, apiName, queryStringGenerator(params...))
+	switch method {
+	case http.MethodGet:
+		return http.Get(fmt.Sprintf("%s?%s&%s", urlPath, c.createRequiredQueryString(), data.Encode()))
+	case http.MethodPost:
+		return http.PostForm(urlPath, data)
+	}
+	return nil, ErrRcApiUnsupportedMethod
 }
 
 func (c *core) createUrlPath(namespace, apiName string) string {

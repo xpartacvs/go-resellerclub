@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"fmt"
+	"net/http"
 
 	"github.com/xpartacvs/go-resellerclub/core"
 )
@@ -11,7 +11,7 @@ type domain struct {
 }
 
 type Domain interface {
-	Test()
+	GetRegistrationOrders(criteria SearchCriteria) error
 }
 
 func New(c core.Core) Domain {
@@ -20,6 +20,16 @@ func New(c core.Core) Domain {
 	}
 }
 
-func (d *domain) Test() {
-	fmt.Println("Hello")
+func (d *domain) GetRegistrationOrders(criteria SearchCriteria) error {
+	urlValues, err := criteria.UrlValues()
+	if err != nil {
+		return err
+	}
+	resp, err := d.core.CallApi(http.MethodGet, "domains", "search", urlValues)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return nil
 }
