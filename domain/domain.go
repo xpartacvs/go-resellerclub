@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/xpartacvs/go-resellerclub/core"
@@ -32,11 +33,15 @@ func (d *domain) CheckAvailability(domainsWithoutTLD, tlds []string) (DomainAvai
 	}
 
 	data := url.Values{}
-	var wg sync.WaitGroup
+	wg := sync.WaitGroup{}
+	rwMutex := sync.RWMutex{}
+
 	for _, v := range domainsWithoutTLD {
 		wg.Add(1)
 		go func(value string) {
 			defer wg.Done()
+			defer rwMutex.Unlock()
+			rwMutex.Lock()
 			data.Add("domain-name", value)
 		}(v)
 	}
@@ -44,6 +49,8 @@ func (d *domain) CheckAvailability(domainsWithoutTLD, tlds []string) (DomainAvai
 		wg.Add(1)
 		go func(value string) {
 			defer wg.Done()
+			defer rwMutex.Unlock()
+			rwMutex.Lock()
 			data.Add("tlds", value)
 		}(v)
 	}
@@ -58,6 +65,15 @@ func (d *domain) CheckAvailability(domainsWithoutTLD, tlds []string) (DomainAvai
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return DomainAvailabilities{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return DomainAvailabilities{}, err
+		}
+		return DomainAvailabilities{}, errors.New(strings.ToLower(errResponse.Message))
 	}
 
 	availabilities := DomainAvailabilities{}

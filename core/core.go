@@ -19,6 +19,11 @@ type core struct {
 	outFormat    OutputFormat
 }
 
+type JSONStatusResponse struct {
+	Status  string `json:"status"`
+	Message string `jsob:"message"`
+}
+
 type Core interface {
 	CallApi(method, namespace, apiName string, data url.Values) (*http.Response, error)
 	PrintResponse(data []byte) error
@@ -53,6 +58,8 @@ func (c *core) CallApi(method, namespace, apiName string, data url.Values) (*htt
 	case http.MethodGet:
 		return http.Get(fmt.Sprintf("%s?%s&%s", urlPath, c.createRequiredQueryString(), data.Encode()))
 	case http.MethodPost:
+		data.Add("auth-userid", c.resellerId)
+		data.Add("api-key", c.apiKey)
 		return http.PostForm(urlPath, data)
 	}
 	return nil, ErrRcApiUnsupportedMethod

@@ -34,7 +34,8 @@ func (c SearchCriteria) UrlValues() (url.Values, error) {
 		return url.Values{}, err
 	}
 
-	var wg sync.WaitGroup
+	wg := sync.WaitGroup{}
+	rwMutex := sync.RWMutex{}
 
 	urlValues := url.Values{}
 	valueCriteria := reflect.ValueOf(c)
@@ -55,24 +56,36 @@ func (c SearchCriteria) UrlValues() (url.Values, error) {
 
 				switch vField.Kind() {
 				case reflect.Uint8, reflect.Uint16, reflect.Uint:
+					rwMutex.Lock()
 					urlValues.Add(queryField, fmt.Sprintf("%d", vField.Uint()))
+					rwMutex.Unlock()
 				case reflect.String:
+					rwMutex.Lock()
 					urlValues.Add(queryField, vField.String())
+					rwMutex.Unlock()
 				case reflect.Bool:
+					rwMutex.Lock()
 					urlValues.Add(queryField, fmt.Sprintf("%t", vField.Bool()))
+					rwMutex.Unlock()
 				case reflect.Struct:
 					if vField.Type().ConvertibleTo(reflect.TypeOf(time.Time{})) {
 						timeField := vField.Interface().(time.Time)
+						rwMutex.Lock()
 						urlValues.Add(queryField, fmt.Sprintf("%d", timeField.Unix()))
+						rwMutex.Unlock()
 					}
 				case reflect.Slice:
 					for j := 0; j < vField.Len(); j++ {
 						vSlice := vField.Index(j)
 						switch vSlice.Type().Kind() {
 						case reflect.Uint:
+							rwMutex.Lock()
 							urlValues.Add(queryField, fmt.Sprintf("%d", vSlice.Uint()))
+							rwMutex.Unlock()
 						case reflect.String:
+							rwMutex.Lock()
 							urlValues.Add(queryField, vSlice.String())
+							rwMutex.Unlock()
 						case reflect.Map:
 							if vSlice.Type().ConvertibleTo(reflect.TypeOf(SortOrder{})) {
 								vSortOrder := vSlice.Interface().(SortOrder)
@@ -85,7 +98,9 @@ func (c SearchCriteria) UrlValues() (url.Values, error) {
 										if value {
 											vQuery += " desc"
 										}
+										rwMutex.Lock()
 										urlValues.Add(queryField, vQuery)
+										rwMutex.Unlock()
 									}(k, desc)
 								}
 								wgSortOrder.Wait()
