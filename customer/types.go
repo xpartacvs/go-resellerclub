@@ -17,7 +17,7 @@ type JSONBool bool
 type JSONFloat float64
 type JSONTime time.Time
 
-type RegistrationForm struct {
+type SignUpForm struct {
 	Username              string `validate:"required,email" query:"username"`
 	Password              string `validate:"required,min=9,max=16,rcpassword" query:"passwd"`
 	Name                  string `validate:"required" query:"name"`
@@ -78,7 +78,7 @@ type CustomerDetail struct {
 	IsDominicanTaxConfgired JSONBool  `json:"isDominicanTaxConfiguredByParent"`
 }
 
-func (r RegistrationForm) UrlValues() (url.Values, error) {
+func (r SignUpForm) UrlValues() (url.Values, error) {
 	valider := validator.New()
 	if err := valider.RegisterValidation("rcpassword", validatePassword); err != nil {
 		return url.Values{}, err

@@ -17,7 +17,7 @@ type customer struct {
 }
 
 type Customer interface {
-	SignUp(regForm *RegistrationForm) error
+	SignUp(regForm *SignUpForm) error
 	ChangePassword(customerId, newPassword string) error
 	Details(customerIdOrEmail string) (CustomerDetail, error)
 	Delete(customerId string) error
@@ -226,7 +226,7 @@ func (c *customer) ChangePassword(customerId, newPassword string) error {
 	return nil
 }
 
-func (c *customer) SignUp(regForm *RegistrationForm) error {
+func (c *customer) SignUp(regForm *SignUpForm) error {
 	urlValues, err := regForm.UrlValues()
 	if err != nil {
 		return err

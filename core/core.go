@@ -11,29 +11,21 @@ import (
 	"regexp"
 )
 
-type OutputFormat string
-
 type core struct {
 	resellerId   string
 	apiKey       string
 	isProduction bool
-	outFormat    OutputFormat
 }
 
 type JSONStatusResponse struct {
 	Status  string `json:"status"`
-	Message string `jsob:"message"`
+	Message string `json:"message"`
 }
 
 type Core interface {
 	CallApi(method, namespace, apiName string, data url.Values) (*http.Response, error)
 	PrintResponse(data []byte) error
 }
-
-const (
-	OUTPUT_JSON OutputFormat = "json"
-	OUTPUT_XML  OutputFormat = "xml"
-)
 
 var (
 	host = map[bool]string{
@@ -73,11 +65,10 @@ func (c *core) CallApi(method, namespace, apiName string, data url.Values) (*htt
 
 func (c *core) createUrlPath(namespace, apiName string) string {
 	return fmt.Sprintf(
-		"%s/%s/%s.%s",
+		"%s/%s/%s.json",
 		host[c.isProduction],
 		namespace,
 		apiName,
-		string(c.outFormat),
 	)
 }
 
@@ -89,11 +80,10 @@ func (c *core) createRequiredQueryString() string {
 	)
 }
 
-func New(resellerId, apiKey string, outFormat OutputFormat, isProduction bool) Core {
+func New(resellerId, apiKey string, isProduction bool) Core {
 	return &core{
 		resellerId:   resellerId,
 		apiKey:       apiKey,
 		isProduction: isProduction,
-		outFormat:    outFormat,
 	}
 }
