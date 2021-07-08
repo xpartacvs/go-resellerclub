@@ -5,11 +5,17 @@ import (
 	"net/url"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 )
+
+type JSONBool bool
+type JSONFloat float64
+type JSONTime time.Time
 
 type RegistrationForm struct {
 	Username              string `validate:"required,email" query:"username"`
@@ -38,6 +44,38 @@ type RegistrationForm struct {
 	EmailMarketingConcent bool   `validate:"omitempty" query:"email-marketing-consent,omitempty"`
 	AcceptPolicy          bool   `validate:"omitempty" query:"accept-policy,omitempty"`
 	CustomerId            string `validate:"-"`
+}
+
+type CustomerDetail struct {
+	Id                      string    `json:"customerid"`
+	Username                string    `json:"username"`
+	ResellerId              string    `json:"resellerid"`
+	ParentId                string    `json:"parentid"`
+	Name                    string    `json:"name"`
+	Company                 string    `json:"company"`
+	Email                   string    `json:"useremail"`
+	PhoneCountryCode        string    `json:"telnocc"`
+	Phone                   string    `json:"telno"`
+	MobileCountryCode       string    `json:"mobilenocc"`
+	Mobile                  string    `json:"mobileno"`
+	Address                 string    `json:"address1"`
+	AddressLine2            string    `json:"address2"`
+	AddressLine3            string    `json:"address3"`
+	City                    string    `josn:"city"`
+	State                   string    `josn:"state"`
+	StateId                 string    `josn:"stateid"`
+	CountryCode             string    `josn:"country"`
+	Zipcode                 string    `josn:"zip"`
+	Pin                     string    `josn:"pin"`
+	TimeCreation            JSONTime  `josn:"creationdt"`
+	Status                  string    `josn:"customerstatus"`
+	SalesContactId          string    `json:"salescontactid"`
+	LanguagePreference      string    `json:"langpref"`
+	TotalReceipts           JSONFloat `json:"totalreceipts"`
+	Is2FA                   JSONBool  `json:"twofactorauth_enabled"`
+	Is2FASms                JSONBool  `json:"twofactorsmsauth_enabled"`
+	Is2FAGoogle             JSONBool  `json:"twofactorgoogleauth_enabled"`
+	IsDominicanTaxConfgired JSONBool  `json:"isDominicanTaxConfiguredByParent"`
 }
 
 func (r RegistrationForm) UrlValues() (url.Values, error) {
@@ -98,4 +136,34 @@ func matchPasswordWithPattern(password string, withRangeOfLength bool) bool {
 	rgxAlphaUpper := regexp.MustCompile(`[A-Z]`)
 	rgxSymbol := regexp.MustCompile(`[\~\*\!\@\$\#\%\_\+\.\?\:\,\{\}]`)
 	return rgxAlphaLower.MatchString(password) && rgxAlphaUpper.MatchString(password) && rgxSymbol.MatchString(password)
+}
+
+func (j *JSONBool) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), "\"")
+	bValue, err := strconv.ParseBool(s)
+	if err != nil {
+		return err
+	}
+	*j = JSONBool(bValue)
+	return nil
+}
+
+func (j *JSONFloat) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), "\"")
+	fValue, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return err
+	}
+	*j = JSONFloat(fValue)
+	return nil
+}
+
+func (j *JSONTime) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), "\"")
+	tValue, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return err
+	}
+	*j = JSONTime(time.Unix(tValue, 0))
+	return nil
 }
