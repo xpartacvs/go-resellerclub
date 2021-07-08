@@ -148,6 +148,10 @@ func (j *JSONBool) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (j JSONBool) ToBool() bool {
+	return bool(j)
+}
+
 func (j *JSONFloat) UnmarshalJSON(b []byte) error {
 	s := strings.Trim(string(b), "\"")
 	fValue, err := strconv.ParseFloat(s, 64)
@@ -158,6 +162,10 @@ func (j *JSONFloat) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (j JSONFloat) ToFloat64() float64 {
+	return float64(j)
+}
+
 func (j *JSONTime) UnmarshalJSON(b []byte) error {
 	s := strings.Trim(string(b), "\"")
 	tValue, err := strconv.ParseInt(s, 10, 64)
@@ -166,4 +174,8 @@ func (j *JSONTime) UnmarshalJSON(b []byte) error {
 	}
 	*j = JSONTime(time.Unix(tValue, 0))
 	return nil
+}
+
+func (j JSONTime) ToTime() time.Time {
+	return time.Time(j)
 }

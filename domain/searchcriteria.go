@@ -11,13 +11,13 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type SearchCriteria struct {
+type OrdersCriteria struct {
 	Limit             uint16        `validate:"required,min=10,max=500" query:"no-of-records"`
 	Offset            uint8         `validate:"required,min=1" query:"page-no"`
 	SortOrderBy       []SortOrder   `validate:"omitempty" query:"order-by,omitempty"`
-	OrderIDs          []uint        `validate:"omitempty" query:"order-id,omitempty"`
-	ResellerIDs       []uint        `validate:"omitempty" query:"reseller-id,omitempty"`
-	CustomerIDs       []uint        `validate:"omitempty" query:"customer-id,omitempty"`
+	OrderIDs          []string      `validate:"omitempty" query:"order-id,omitempty"`
+	ResellerIDs       []string      `validate:"omitempty" query:"reseller-id,omitempty"`
+	CustomerIDs       []string      `validate:"omitempty" query:"customer-id,omitempty"`
 	DomainKeys        []DomainKey   `validate:"omitempty" query:"product-key,omitempty"`
 	DomainName        string        `validate:"omitempty" query:"domain-name,omitempty"`
 	OrderStatuses     []OrderStatus `validate:"omitempty" query:"status,omitempty"`
@@ -29,7 +29,7 @@ type SearchCriteria struct {
 	TimeExpiryEnd     time.Time     `validate:"omitempty" query:"expiry-date-start,omitempty"`
 }
 
-func (c SearchCriteria) UrlValues() (url.Values, error) {
+func (c OrdersCriteria) UrlValues() (url.Values, error) {
 	if err := validator.New().Struct(c); err != nil {
 		return url.Values{}, err
 	}
@@ -55,7 +55,7 @@ func (c SearchCriteria) UrlValues() (url.Values, error) {
 				queryField := strings.TrimSuffix(fieldTag, ",omitempty")
 
 				switch vField.Kind() {
-				case reflect.Uint8, reflect.Uint16, reflect.Uint:
+				case reflect.Uint8, reflect.Uint16:
 					rwMutex.Lock()
 					urlValues.Add(queryField, fmt.Sprintf("%d", vField.Uint()))
 					rwMutex.Unlock()
@@ -78,10 +78,6 @@ func (c SearchCriteria) UrlValues() (url.Values, error) {
 					for j := 0; j < vField.Len(); j++ {
 						vSlice := vField.Index(j)
 						switch vSlice.Type().Kind() {
-						case reflect.Uint:
-							rwMutex.Lock()
-							urlValues.Add(queryField, fmt.Sprintf("%d", vSlice.Uint()))
-							rwMutex.Unlock()
 						case reflect.String:
 							rwMutex.Lock()
 							urlValues.Add(queryField, vSlice.String())
