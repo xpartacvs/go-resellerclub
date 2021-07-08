@@ -87,8 +87,15 @@ func (r RegistrationForm) UrlValues() (url.Values, error) {
 }
 
 func validatePassword(fl validator.FieldLevel) bool {
+	return matchPasswordWithPattern(fl.Field().String(), false)
+}
+
+func matchPasswordWithPattern(password string, withRangeOfLength bool) bool {
+	if withRangeOfLength && (len(password) < 9 || len(password) > 16) {
+		return false
+	}
 	rgxAlphaLower := regexp.MustCompile(`[a-z]`)
 	rgxAlphaUpper := regexp.MustCompile(`[A-Z]`)
 	rgxSymbol := regexp.MustCompile(`[\~\*\!\@\$\#\%\_\+\.\?\:\,\{\}]`)
-	return rgxAlphaLower.MatchString(fl.Field().String()) && rgxAlphaUpper.MatchString(fl.Field().String()) && rgxSymbol.MatchString(fl.Field().String())
+	return rgxAlphaLower.MatchString(password) && rgxAlphaUpper.MatchString(password) && rgxSymbol.MatchString(password)
 }
