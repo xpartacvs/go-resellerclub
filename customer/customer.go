@@ -22,6 +22,52 @@ type Customer interface {
 	Details(customerIdOrEmail string) (CustomerDetail, error)
 	Delete(customerId string) error
 	ForgotPassword(username string) error
+	ToggleSuspension(suspend bool, customerId, reason string) error
+}
+
+func (c *customer) ToggleSuspension(suspend bool, customerId, reason string) error {
+	if !core.RgxNumber.MatchString(customerId) {
+		return core.ErrRcInvalidCredential
+	}
+
+	funcName := "unsuspend"
+	if suspend {
+		funcName = "suspend"
+	}
+
+	data := url.Values{}
+	data.Add("customer-id", customerId)
+	data.Add("reason", reason)
+
+	resp, err := c.core.CallApi(http.MethodPost, "customers", funcName, data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	boolResult, err := strconv.ParseBool(string(bytesResp))
+	if err != nil {
+		return err
+	}
+	if !boolResult {
+		return core.ErrRcOperationFailed
+	}
+
+	return nil
 }
 
 func (c *customer) ForgotPassword(username string) error {
