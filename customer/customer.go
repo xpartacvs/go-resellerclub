@@ -21,6 +21,43 @@ type Customer interface {
 	ChangePassword(customerId, newPassword string) error
 	Details(customerIdOrEmail string) (CustomerDetail, error)
 	Delete(customerId string) error
+	ForgotPassword(username string) error
+}
+
+func (c *customer) ForgotPassword(username string) error {
+	if !core.RgxEmail.MatchString(username) {
+		return core.ErrRcInvalidCredential
+	}
+
+	resp, err := c.core.CallApi(http.MethodGet, "customers", "forgot-password", url.Values{"username": {username}})
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	boolResult, err := strconv.ParseBool(string(bytesResp))
+	if err != nil {
+		return err
+	}
+	if !boolResult {
+		return core.ErrRcOperationFailed
+	}
+
+	return nil
 }
 
 func (c *customer) Delete(customerId string) error {
