@@ -79,18 +79,18 @@ type CustomerDetail struct {
 	IsDominicanTaxConfgired JSONBool  `json:"isDominicanTaxConfiguredByParent"`
 }
 
-type CustomersCriteria struct {
+type CustomerCriteria struct {
 	core.Criteria
 	Username       string  `validate:"omitempty" query:"username,omitempty"`
 	Name           string  `validate:"omitempty" query:"name,omitempty"`
 	Company        string  `validate:"omitempty" query:"company,omitempty"`
 	City           string  `validate:"omitempty" query:"city,omitempty"`
 	State          string  `validate:"omitempty" query:"state,omitempty"`
-	ReceiptLowest  float64 `validate:"omitempty" query:"total-receipt-start"`
-	ReceiptHighest float64 `validate:"omitempty" query:"total-receipt-end"`
+	ReceiptLowest  float64 `validate:"omitempty" query:"total-receipt-start,omitempty"`
+	ReceiptHighest float64 `validate:"omitempty" query:"total-receipt-end,omitempty"`
 }
 
-func (c CustomersCriteria) UrlValues() (url.Values, error) {
+func (c CustomerCriteria) UrlValues() (url.Values, error) {
 	if err := validator.New().Struct(c); err != nil {
 		return url.Values{}, err
 	}
@@ -116,6 +116,10 @@ func (c CustomersCriteria) UrlValues() (url.Values, error) {
 				queryField := strings.TrimSuffix(fieldTag, ",omitempty")
 
 				switch vField.Kind() {
+				case reflect.Float32, reflect.Float64:
+					rwMutex.Lock()
+					urlValues.Add(queryField, fmt.Sprintf("%.2f", vField.Float()))
+					rwMutex.Unlock()
 				case reflect.Uint8, reflect.Uint16:
 					rwMutex.Lock()
 					urlValues.Add(queryField, fmt.Sprintf("%d", vField.Uint()))

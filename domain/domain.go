@@ -17,7 +17,7 @@ type domain struct {
 }
 
 type Domain interface {
-	SearchRegistrationOrders(criteria OrdersCriteria) error
+	SearchOrders(criteria OrderCriteria) error
 	CheckAvailability(domainsWithoutTLD, tlds []string) (DomainAvailabilities, error)
 }
 
@@ -85,7 +85,7 @@ func (d *domain) CheckAvailability(domainsWithoutTLD, tlds []string) (DomainAvai
 	return availabilities, nil
 }
 
-func (d *domain) SearchRegistrationOrders(criteria OrdersCriteria) error {
+func (d *domain) SearchOrders(criteria OrderCriteria) error {
 	urlValues, err := criteria.UrlValues()
 	if err != nil {
 		return err

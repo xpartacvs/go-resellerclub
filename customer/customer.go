@@ -22,10 +22,10 @@ type Customer interface {
 	Details(customerIdOrEmail string) (CustomerDetail, error)
 	Delete(customerId string) error
 	ForgotPassword(username string) error
-	ToggleSuspension(suspend bool, customerId, reason string) error
+	SetSuspension(suspend bool, customerId, reason string) error
 }
 
-func (c *customer) ToggleSuspension(suspend bool, customerId, reason string) error {
+func (c *customer) SetSuspension(suspend bool, customerId, reason string) error {
 	if !core.RgxNumber.MatchString(customerId) {
 		return core.ErrRcInvalidCredential
 	}

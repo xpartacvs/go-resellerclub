@@ -12,7 +12,7 @@ import (
 	"github.com/xpartacvs/go-resellerclub/core"
 )
 
-type OrdersCriteria struct {
+type OrderCriteria struct {
 	core.Criteria
 	SortOrderBy     []SortOrder  `validate:"omitempty" query:"order-by,omitempty"`
 	OrderIDs        []string     `validate:"omitempty" query:"order-id,omitempty"`
@@ -24,7 +24,7 @@ type OrdersCriteria struct {
 	TimeExpiryEnd   time.Time    `validate:"omitempty" query:"expiry-date-start,omitempty"`
 }
 
-func (c OrdersCriteria) UrlValues() (url.Values, error) {
+func (c OrderCriteria) UrlValues() (url.Values, error) {
 	if err := validator.New().Struct(c); err != nil {
 		return url.Values{}, err
 	}
