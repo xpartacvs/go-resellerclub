@@ -81,13 +81,14 @@ type CustomerDetail struct {
 
 type CustomerCriteria struct {
 	core.Criteria
-	Username       string  `validate:"omitempty" query:"username,omitempty"`
-	Name           string  `validate:"omitempty" query:"name,omitempty"`
-	Company        string  `validate:"omitempty" query:"company,omitempty"`
-	City           string  `validate:"omitempty" query:"city,omitempty"`
-	State          string  `validate:"omitempty" query:"state,omitempty"`
-	ReceiptLowest  float64 `validate:"omitempty" query:"total-receipt-start,omitempty"`
-	ReceiptHighest float64 `validate:"omitempty" query:"total-receipt-end,omitempty"`
+	Username       string            `validate:"omitempty" query:"username,omitempty"`
+	Status         core.EntityStatus `validate:"omitempty" query:"status,omitempty"`
+	Name           string            `validate:"omitempty" query:"name,omitempty"`
+	Company        string            `validate:"omitempty" query:"company,omitempty"`
+	City           string            `validate:"omitempty" query:"city,omitempty"`
+	State          string            `validate:"omitempty" query:"state,omitempty"`
+	ReceiptLowest  float64           `validate:"omitempty" query:"total-receipt-start,omitempty"`
+	ReceiptHighest float64           `validate:"omitempty" query:"total-receipt-end,omitempty"`
 }
 
 func (c CustomerCriteria) UrlValues() (url.Values, error) {
@@ -109,7 +110,35 @@ func (c CustomerCriteria) UrlValues() (url.Values, error) {
 			vField := valueCriteria.Field(idx)
 			tField := typeCriteria.Field(idx)
 			fieldTag := tField.Tag.Get("query")
-			if len(fieldTag) > 0 {
+
+			if len(fieldTag) <= 0 {
+				if vField.Kind() == reflect.Struct && vField.Type().ConvertibleTo(reflect.TypeOf(core.Criteria{})) {
+					coreCiteriaData, err := vField.Interface().(core.Criteria).UrlValues()
+					if err != nil {
+						return
+					}
+
+					wgCriteria := sync.WaitGroup{}
+					for k, v := range coreCiteriaData {
+						wgCriteria.Add(1)
+						go func(key string, val []string) {
+							defer wgCriteria.Done()
+							wgSlc := sync.WaitGroup{}
+							for _, v2 := range val {
+								wgSlc.Add(1)
+								go func(key2, strVal string) {
+									defer wgSlc.Done()
+									rwMutex.Lock()
+									urlValues.Add(key2, strVal)
+									rwMutex.Unlock()
+								}(key, v2)
+							}
+							wgSlc.Wait()
+						}(k, v)
+					}
+					wgCriteria.Wait()
+				}
+			} else {
 				if strings.HasSuffix(fieldTag, "omitempty") && vField.IsZero() {
 					return
 				}
@@ -120,30 +149,10 @@ func (c CustomerCriteria) UrlValues() (url.Values, error) {
 					rwMutex.Lock()
 					urlValues.Add(queryField, fmt.Sprintf("%.2f", vField.Float()))
 					rwMutex.Unlock()
-				case reflect.Uint8, reflect.Uint16:
-					rwMutex.Lock()
-					urlValues.Add(queryField, fmt.Sprintf("%d", vField.Uint()))
-					rwMutex.Unlock()
 				case reflect.String:
 					rwMutex.Lock()
 					urlValues.Add(queryField, vField.String())
 					rwMutex.Unlock()
-				case reflect.Struct:
-					if vField.Type().ConvertibleTo(reflect.TypeOf(time.Time{})) {
-						timeField := vField.Interface().(time.Time)
-						rwMutex.Lock()
-						urlValues.Add(queryField, fmt.Sprintf("%d", timeField.Unix()))
-						rwMutex.Unlock()
-					}
-				case reflect.Slice:
-					for j := 0; j < vField.Len(); j++ {
-						vSlice := vField.Index(j)
-						if vSlice.Type().Kind() == reflect.String {
-							rwMutex.Lock()
-							urlValues.Add(queryField, vSlice.String())
-							rwMutex.Unlock()
-						}
-					}
 				}
 			}
 		}(i)

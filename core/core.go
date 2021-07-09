@@ -8,8 +8,13 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"reflect"
 	"regexp"
+	"strings"
+	"sync"
 	"time"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type EntityStatus string
@@ -26,13 +31,12 @@ type JSONStatusResponse struct {
 }
 
 type Criteria struct {
-	Limit             uint16         `validate:"required,min=10,max=500" query:"no-of-records"`
-	Offset            uint8          `validate:"required,min=1" query:"page-no"`
-	ResellerIDs       []string       `validate:"omitempty" query:"reseller-id,omitempty"`
-	CustomerIDs       []string       `validate:"omitempty" query:"customer-id,omitempty"`
-	Statuses          []EntityStatus `validate:"omitempty" query:"status,omitempty"`
-	TimeCreationStart time.Time      `validate:"omitempty" query:"creation-date-start,omitempty"`
-	TimeCreationEnd   time.Time      `validate:"omitempty" query:"creation-date-end,omitempty"`
+	Limit             uint16    `validate:"required,min=10,max=500" query:"no-of-records"`
+	Offset            uint8     `validate:"required,min=1" query:"page-no"`
+	ResellerIDs       []string  `validate:"omitempty" query:"reseller-id,omitempty"`
+	CustomerIDs       []string  `validate:"omitempty" query:"customer-id,omitempty"`
+	TimeCreationStart time.Time `validate:"omitempty" query:"creation-date-start,omitempty"`
+	TimeCreationEnd   time.Time `validate:"omitempty" query:"creation-date-end,omitempty"`
 }
 
 type Core interface {
@@ -64,6 +68,72 @@ var (
 	ErrRcOperationFailed      = errors.New("operation failed")
 	ErrRcInvalidCredential    = errors.New("invalid credential")
 )
+
+func (c Criteria) UrlValues() (url.Values, error) {
+	if err := validator.New().Struct(c); err != nil {
+		return url.Values{}, err
+	}
+
+	wg := sync.WaitGroup{}
+	rwMutex := sync.RWMutex{}
+
+	urlValues := url.Values{}
+	valueCriteria := reflect.ValueOf(c)
+	typeCriteria := reflect.TypeOf(c)
+
+	for i := 0; i < valueCriteria.NumField(); i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			vField := valueCriteria.Field(idx)
+			tField := typeCriteria.Field(idx)
+			fieldTag := tField.Tag.Get("query")
+
+			if len(fieldTag) > 0 {
+				if strings.HasSuffix(fieldTag, "omitempty") && vField.IsZero() {
+					return
+				}
+				queryField := strings.TrimSuffix(fieldTag, ",omitempty")
+
+				switch vField.Kind() {
+				case reflect.Uint8, reflect.Uint16:
+					rwMutex.Lock()
+					urlValues.Add(queryField, fmt.Sprintf("%d", vField.Uint()))
+					rwMutex.Unlock()
+				case reflect.Struct:
+					if vField.Type().ConvertibleTo(reflect.TypeOf(time.Time{})) {
+						timeField := vField.Interface().(time.Time)
+						rwMutex.Lock()
+						urlValues.Add(queryField, fmt.Sprintf("%d", timeField.Unix()))
+						rwMutex.Unlock()
+					}
+				case reflect.Slice:
+					wgSlice := sync.WaitGroup{}
+					for j := 0; j < vField.Len(); j++ {
+						wgSlice.Add(1)
+						go func(x int) {
+							defer wgSlice.Done()
+							vSlice := vField.Index(x)
+							if vSlice.Type().Kind() == reflect.String {
+								rwMutex.Lock()
+								urlValues.Add(queryField, vSlice.String())
+								rwMutex.Unlock()
+							}
+						}(j)
+					}
+					wgSlice.Wait()
+				case reflect.String:
+					rwMutex.Lock()
+					urlValues.Add(queryField, vField.String())
+					rwMutex.Unlock()
+				}
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	return urlValues, nil
+}
 
 func (c *core) PrintResponse(data []byte) error {
 	var buffer bytes.Buffer

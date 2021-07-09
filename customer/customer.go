@@ -23,6 +23,40 @@ type Customer interface {
 	Delete(customerId string) error
 	ForgotPassword(username string) error
 	SetSuspension(suspend bool, customerId, reason string) error
+	Search(criteria CustomerCriteria) error
+}
+
+func (c *customer) Search(criteria CustomerCriteria) error {
+	data, err := criteria.UrlValues()
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.core.CallApi(http.MethodGet, "customers", "search", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	if err := c.core.PrintResponse(bytesResp); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *customer) SetSuspension(suspend bool, customerId, reason string) error {

@@ -14,14 +14,15 @@ import (
 
 type OrderCriteria struct {
 	core.Criteria
-	SortOrderBy     []SortOrder  `validate:"omitempty" query:"order-by,omitempty"`
-	OrderIDs        []string     `validate:"omitempty" query:"order-id,omitempty"`
-	DomainKeys      []DomainKey  `validate:"omitempty" query:"product-key,omitempty"`
-	DomainName      string       `validate:"omitempty" query:"domain-name,omitempty"`
-	PrivacyStatus   PrivacyState `validate:"omitempty" query:"privacy-enabled,omitempty"`
-	ShowChildOrders bool         `validate:"omitempty" query:"show-child-orders,omitempty"`
-	TimeExpiryStart time.Time    `validate:"omitempty" query:"expiry-date-start,omitempty"`
-	TimeExpiryEnd   time.Time    `validate:"omitempty" query:"expiry-date-start,omitempty"`
+	Statuses        []core.EntityStatus `validate:"omitempty" query:"status,omitempty"`
+	SortOrderBy     []SortOrder         `validate:"omitempty" query:"order-by,omitempty"`
+	OrderIDs        []string            `validate:"omitempty" query:"order-id,omitempty"`
+	DomainKeys      []DomainKey         `validate:"omitempty" query:"product-key,omitempty"`
+	DomainName      string              `validate:"omitempty" query:"domain-name,omitempty"`
+	PrivacyStatus   PrivacyState        `validate:"omitempty" query:"privacy-enabled,omitempty"`
+	ShowChildOrders bool                `validate:"omitempty" query:"show-child-orders,omitempty"`
+	TimeExpiryStart time.Time           `validate:"omitempty" query:"expiry-date-start,omitempty"`
+	TimeExpiryEnd   time.Time           `validate:"omitempty" query:"expiry-date-start,omitempty"`
 }
 
 func (c OrderCriteria) UrlValues() (url.Values, error) {
