@@ -9,24 +9,19 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/xpartacvs/go-resellerclub/core"
 )
 
 type OrdersCriteria struct {
-	Limit             uint16        `validate:"required,min=10,max=500" query:"no-of-records"`
-	Offset            uint8         `validate:"required,min=1" query:"page-no"`
-	SortOrderBy       []SortOrder   `validate:"omitempty" query:"order-by,omitempty"`
-	OrderIDs          []string      `validate:"omitempty" query:"order-id,omitempty"`
-	ResellerIDs       []string      `validate:"omitempty" query:"reseller-id,omitempty"`
-	CustomerIDs       []string      `validate:"omitempty" query:"customer-id,omitempty"`
-	DomainKeys        []DomainKey   `validate:"omitempty" query:"product-key,omitempty"`
-	DomainName        string        `validate:"omitempty" query:"domain-name,omitempty"`
-	OrderStatuses     []OrderStatus `validate:"omitempty" query:"status,omitempty"`
-	PrivacyStatus     PrivacyState  `validate:"omitempty" query:"privacy-enabled,omitempty"`
-	ShowChildOrders   bool          `validate:"omitempty" query:"show-child-orders,omitempty"`
-	TimeCreationStart time.Time     `validate:"omitempty" query:"creation-date-start,omitempty"`
-	TimeCreationEnd   time.Time     `validate:"omitempty" query:"creation-date-end,omitempty"`
-	TimeExpiryStart   time.Time     `validate:"omitempty" query:"expiry-date-start,omitempty"`
-	TimeExpiryEnd     time.Time     `validate:"omitempty" query:"expiry-date-start,omitempty"`
+	core.Criteria
+	SortOrderBy     []SortOrder  `validate:"omitempty" query:"order-by,omitempty"`
+	OrderIDs        []string     `validate:"omitempty" query:"order-id,omitempty"`
+	DomainKeys      []DomainKey  `validate:"omitempty" query:"product-key,omitempty"`
+	DomainName      string       `validate:"omitempty" query:"domain-name,omitempty"`
+	PrivacyStatus   PrivacyState `validate:"omitempty" query:"privacy-enabled,omitempty"`
+	ShowChildOrders bool         `validate:"omitempty" query:"show-child-orders,omitempty"`
+	TimeExpiryStart time.Time    `validate:"omitempty" query:"expiry-date-start,omitempty"`
+	TimeExpiryEnd   time.Time    `validate:"omitempty" query:"expiry-date-start,omitempty"`
 }
 
 func (c OrdersCriteria) UrlValues() (url.Values, error) {
@@ -105,7 +100,6 @@ func (c OrdersCriteria) UrlValues() (url.Values, error) {
 					}
 				}
 			}
-
 		}(i)
 	}
 

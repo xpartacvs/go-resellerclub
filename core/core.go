@@ -9,7 +9,10 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"time"
 )
+
+type EntityStatus string
 
 type core struct {
 	resellerId   string
@@ -22,10 +25,31 @@ type JSONStatusResponse struct {
 	Message string `json:"message"`
 }
 
+type Criteria struct {
+	Limit             uint16         `validate:"required,min=10,max=500" query:"no-of-records"`
+	Offset            uint8          `validate:"required,min=1" query:"page-no"`
+	ResellerIDs       []string       `validate:"omitempty" query:"reseller-id,omitempty"`
+	CustomerIDs       []string       `validate:"omitempty" query:"customer-id,omitempty"`
+	Statuses          []EntityStatus `validate:"omitempty" query:"status,omitempty"`
+	TimeCreationStart time.Time      `validate:"omitempty" query:"creation-date-start,omitempty"`
+	TimeCreationEnd   time.Time      `validate:"omitempty" query:"creation-date-end,omitempty"`
+}
+
 type Core interface {
 	CallApi(method, namespace, apiName string, data url.Values) (*http.Response, error)
 	PrintResponse(data []byte) error
 }
+
+const (
+	StatusActive              EntityStatus = "Active"
+	StatusInActive            EntityStatus = "InActive"
+	StatusDeleted             EntityStatus = "Deleted"
+	StatusArchived            EntityStatus = "Archived"
+	StatusSuspended           EntityStatus = "Suspended"
+	StatusVerificationPending EntityStatus = "Pending Verification"
+	StatusVerificationFailed  EntityStatus = "Failed Verification"
+	StatusRestorable          EntityStatus = "Pending Delete Restorable"
+)
 
 var (
 	host = map[bool]string{

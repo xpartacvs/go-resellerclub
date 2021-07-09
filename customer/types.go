@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/xpartacvs/go-resellerclub/core"
 )
 
 type JSONBool bool
@@ -76,6 +77,76 @@ type CustomerDetail struct {
 	Is2FASms                JSONBool  `json:"twofactorsmsauth_enabled"`
 	Is2FAGoogle             JSONBool  `json:"twofactorgoogleauth_enabled"`
 	IsDominicanTaxConfgired JSONBool  `json:"isDominicanTaxConfiguredByParent"`
+}
+
+type CustomersCriteria struct {
+	core.Criteria
+	Username       string  `validate:"omitempty" query:"username,omitempty"`
+	Name           string  `validate:"omitempty" query:"name,omitempty"`
+	Company        string  `validate:"omitempty" query:"company,omitempty"`
+	City           string  `validate:"omitempty" query:"city,omitempty"`
+	State          string  `validate:"omitempty" query:"state,omitempty"`
+	ReceiptLowest  float64 `validate:"omitempty" query:"total-receipt-start"`
+	ReceiptHighest float64 `validate:"omitempty" query:"total-receipt-end"`
+}
+
+func (c CustomersCriteria) UrlValues() (url.Values, error) {
+	if err := validator.New().Struct(c); err != nil {
+		return url.Values{}, err
+	}
+
+	wg := sync.WaitGroup{}
+	rwMutex := sync.RWMutex{}
+
+	urlValues := url.Values{}
+	valueCriteria := reflect.ValueOf(c)
+	typeCriteria := reflect.TypeOf(c)
+
+	for i := 0; i < valueCriteria.NumField(); i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			vField := valueCriteria.Field(idx)
+			tField := typeCriteria.Field(idx)
+			fieldTag := tField.Tag.Get("query")
+			if len(fieldTag) > 0 {
+				if strings.HasSuffix(fieldTag, "omitempty") && vField.IsZero() {
+					return
+				}
+				queryField := strings.TrimSuffix(fieldTag, ",omitempty")
+
+				switch vField.Kind() {
+				case reflect.Uint8, reflect.Uint16:
+					rwMutex.Lock()
+					urlValues.Add(queryField, fmt.Sprintf("%d", vField.Uint()))
+					rwMutex.Unlock()
+				case reflect.String:
+					rwMutex.Lock()
+					urlValues.Add(queryField, vField.String())
+					rwMutex.Unlock()
+				case reflect.Struct:
+					if vField.Type().ConvertibleTo(reflect.TypeOf(time.Time{})) {
+						timeField := vField.Interface().(time.Time)
+						rwMutex.Lock()
+						urlValues.Add(queryField, fmt.Sprintf("%d", timeField.Unix()))
+						rwMutex.Unlock()
+					}
+				case reflect.Slice:
+					for j := 0; j < vField.Len(); j++ {
+						vSlice := vField.Index(j)
+						if vSlice.Type().Kind() == reflect.String {
+							rwMutex.Lock()
+							urlValues.Add(queryField, vSlice.String())
+							rwMutex.Unlock()
+						}
+					}
+				}
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	return urlValues, nil
 }
 
 func (r SignUpForm) UrlValues() (url.Values, error) {

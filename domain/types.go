@@ -2,7 +2,7 @@ package domain
 
 type SortBy string
 type DomainKey string
-type OrderStatus string
+
 type PrivacyState string
 type DomainRegistrationStatus string
 type SortOrder map[SortBy]bool
@@ -261,15 +261,6 @@ const (
 	DotLIFE               DomainKey = "dotlife"
 	DotDOG                DomainKey = "dotdog"
 	DotCOUPONS            DomainKey = "dotcoupons"
-
-	StatusActive              OrderStatus = "Active"
-	StatusInActive            OrderStatus = "InActive"
-	StatusDeleted             OrderStatus = "Deleted"
-	StatusArchived            OrderStatus = "Archived"
-	StatusSuspended           OrderStatus = "Suspended"
-	StatusVerificationPending OrderStatus = "Pending Verification"
-	StatusVerificationFailed  OrderStatus = "Failed Verification"
-	StatusRestorable          OrderStatus = "Pending Delete Restorable"
 
 	PrivacyEnabled     PrivacyState = "true"
 	PrivacyDisabled    PrivacyState = "false"
