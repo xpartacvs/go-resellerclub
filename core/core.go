@@ -31,8 +31,8 @@ type JSONStatusResponse struct {
 }
 
 type Criteria struct {
-	Limit             uint16    `validate:"required,min=10,max=500" query:"no-of-records"`
-	Offset            uint8     `validate:"required,min=1" query:"page-no"`
+	// Limit             uint16    `validate:"required,min=10,max=500" query:"no-of-records"`
+	// Offset            uint8     `validate:"required,min=1" query:"page-no"`
 	ResellerIDs       []string  `validate:"omitempty" query:"reseller-id,omitempty"`
 	CustomerIDs       []string  `validate:"omitempty" query:"customer-id,omitempty"`
 	TimeCreationStart time.Time `validate:"omitempty" query:"creation-date-start,omitempty"`
@@ -96,10 +96,10 @@ func (c Criteria) UrlValues() (url.Values, error) {
 				queryField := strings.TrimSuffix(fieldTag, ",omitempty")
 
 				switch vField.Kind() {
-				case reflect.Uint8, reflect.Uint16:
-					rwMutex.Lock()
-					urlValues.Add(queryField, fmt.Sprintf("%d", vField.Uint()))
-					rwMutex.Unlock()
+				// case reflect.Uint8, reflect.Uint16:
+				// 	rwMutex.Lock()
+				// 	urlValues.Add(queryField, fmt.Sprintf("%d", vField.Uint()))
+				// 	rwMutex.Unlock()
 				case reflect.Struct:
 					if vField.Type().ConvertibleTo(reflect.TypeOf(time.Time{})) {
 						timeField := vField.Interface().(time.Time)

@@ -23,40 +23,68 @@ type Customer interface {
 	Delete(customerId string) error
 	ForgotPassword(username string) error
 	SetSuspension(suspend bool, customerId, reason string) error
-	Search(criteria CustomerCriteria) error
+	Search(criteria CustomerCriteria, offset, limit uint16) (CustomerSearchResult, error)
 }
 
-func (c *customer) Search(criteria CustomerCriteria) error {
+func (c *customer) Search(criteria CustomerCriteria, offset, limit uint16) (CustomerSearchResult, error) {
+	if limit < 10 || limit > 500 {
+		return CustomerSearchResult{}, errors.New("limit must be in range of 10 to 500")
+	}
+	if offset <= 0 {
+		return CustomerSearchResult{}, errors.New("offset must greater than 0")
+	}
+
 	data, err := criteria.UrlValues()
 	if err != nil {
-		return err
+		return CustomerSearchResult{}, err
 	}
+	data.Add("no-of-records", strconv.FormatUint(uint64(limit), 10))
+	data.Add("page-no", strconv.FormatUint(uint64(offset), 10))
 
 	resp, err := c.core.CallApi(http.MethodGet, "customers", "search", data)
 	if err != nil {
-		return err
+		return CustomerSearchResult{}, err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return CustomerSearchResult{}, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		err = json.Unmarshal(bytesResp, &errResponse)
 		if err != nil {
-			return err
+			return CustomerSearchResult{}, err
 		}
-		return errors.New(strings.ToLower(errResponse.Message))
+		return CustomerSearchResult{}, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	if err := c.core.PrintResponse(bytesResp); err != nil {
-		return err
+	replacer := strings.NewReplacer("customer.", "")
+	strResp := replacer.Replace(string(bytesResp))
+
+	var buffer map[string]core.JSONBytes
+	if err := json.Unmarshal([]byte(strResp), &buffer); err != nil {
+		return CustomerSearchResult{}, err
 	}
 
-	return nil
+	dataBuffer := CustomerDetail{}
+	dataBuffers := []CustomerDetail{}
+	for key, dataBytes := range buffer {
+		if core.RgxNumber.MatchString(key) {
+			if err := json.Unmarshal(dataBytes, &dataBuffer); err != nil {
+				return CustomerSearchResult{}, err
+			}
+			dataBuffers = append(dataBuffers, dataBuffer)
+		}
+	}
+
+	return CustomerSearchResult{
+		RequestedLimit:  limit,
+		RequestedOffset: offset,
+		Customers:       dataBuffers,
+	}, nil
 }
 
 func (c *customer) SetSuspension(suspend bool, customerId, reason string) error {

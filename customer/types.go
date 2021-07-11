@@ -5,18 +5,12 @@ import (
 	"net/url"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/xpartacvs/go-resellerclub/core"
 )
-
-type JSONBool bool
-type JSONFloat float64
-type JSONTime time.Time
 
 type SignUpForm struct {
 	Username              string `validate:"required,email" query:"username"`
@@ -48,35 +42,36 @@ type SignUpForm struct {
 }
 
 type CustomerDetail struct {
-	Id                      string    `json:"customerid"`
-	Username                string    `json:"username"`
-	ResellerId              string    `json:"resellerid"`
-	ParentId                string    `json:"parentid"`
-	Name                    string    `json:"name"`
-	Company                 string    `json:"company"`
-	Email                   string    `json:"useremail"`
-	PhoneCountryCode        string    `json:"telnocc"`
-	Phone                   string    `json:"telno"`
-	MobileCountryCode       string    `json:"mobilenocc"`
-	Mobile                  string    `json:"mobileno"`
-	Address                 string    `json:"address1"`
-	AddressLine2            string    `json:"address2"`
-	AddressLine3            string    `json:"address3"`
-	City                    string    `josn:"city"`
-	State                   string    `josn:"state"`
-	StateId                 string    `josn:"stateid"`
-	CountryCode             string    `josn:"country"`
-	Zipcode                 string    `josn:"zip"`
-	Pin                     string    `josn:"pin"`
-	TimeCreation            JSONTime  `josn:"creationdt"`
-	Status                  string    `josn:"customerstatus"`
-	SalesContactId          string    `json:"salescontactid"`
-	LanguagePreference      string    `json:"langpref"`
-	TotalReceipts           JSONFloat `json:"totalreceipts"`
-	Is2FA                   JSONBool  `json:"twofactorauth_enabled"`
-	Is2FASms                JSONBool  `json:"twofactorsmsauth_enabled"`
-	Is2FAGoogle             JSONBool  `json:"twofactorgoogleauth_enabled"`
-	IsDominicanTaxConfgired JSONBool  `json:"isDominicanTaxConfiguredByParent"`
+	Id                      string          `json:"customerid,omitempty"`
+	Username                string          `json:"username,omitempty"`
+	ResellerId              string          `json:"resellerid,omitempty"`
+	ParentId                string          `json:"parentid,omitempty"`
+	Name                    string          `json:"name,omitempty"`
+	Company                 string          `json:"company,omitempty"`
+	Email                   string          `json:"useremail,omitempty"`
+	PhoneCountryCode        string          `json:"telnocc,omitempty"`
+	Phone                   string          `json:"telno,omitempty"`
+	MobileCountryCode       string          `json:"mobilenocc,omitempty"`
+	Mobile                  string          `json:"mobileno,omitempty"`
+	Address                 string          `json:"address1,omitempty"`
+	AddressLine2            string          `json:"address2,omitempty"`
+	AddressLine3            string          `json:"address3,omitempty"`
+	City                    string          `json:"city,omitempty"`
+	State                   string          `json:"state,omitempty"`
+	StateId                 string          `json:"stateid,omitempty"`
+	CountryCode             string          `json:"country,omitempty"`
+	Zipcode                 string          `json:"zip,omitempty"`
+	Pin                     string          `json:"pin,omitempty"`
+	TimeCreation            core.JSONTime   `json:"creationdt,omitempty"`
+	Status                  string          `json:"customerstatus,omitempty"`
+	SalesContactId          string          `json:"salescontactid,omitempty"`
+	LanguagePreference      string          `json:"langpref,omitempty"`
+	WebsiteCount            core.JSONUint16 `json:"websitecount,omitempty"`
+	TotalReceipts           core.JSONFloat  `json:"totalreceipts,omitempty"`
+	Is2FA                   core.JSONBool   `json:"twofactorauth_enabled,omitempty"`
+	Is2FASms                core.JSONBool   `json:"twofactorsmsauth_enabled,omitempty"`
+	Is2FAGoogle             core.JSONBool   `json:"twofactorgoogleauth_enabled,omitempty"`
+	IsDominicanTaxConfgired core.JSONBool   `json:"isDominicanTaxConfiguredByParent,omitempty"`
 }
 
 type CustomerCriteria struct {
@@ -89,6 +84,12 @@ type CustomerCriteria struct {
 	State          string            `validate:"omitempty" query:"state,omitempty"`
 	ReceiptLowest  float64           `validate:"omitempty" query:"total-receipt-start,omitempty"`
 	ReceiptHighest float64           `validate:"omitempty" query:"total-receipt-end,omitempty"`
+}
+
+type CustomerSearchResult struct {
+	RequestedLimit  uint16
+	RequestedOffset uint16
+	Customers       []CustomerDetail
 }
 
 func (c CustomerCriteria) UrlValues() (url.Values, error) {
@@ -220,46 +221,4 @@ func matchPasswordWithPattern(password string, withRangeOfLength bool) bool {
 	rgxAlphaUpper := regexp.MustCompile(`[A-Z]`)
 	rgxSymbol := regexp.MustCompile(`[\~\*\!\@\$\#\%\_\+\.\?\:\,\{\}]`)
 	return rgxAlphaLower.MatchString(password) && rgxAlphaUpper.MatchString(password) && rgxSymbol.MatchString(password)
-}
-
-func (j *JSONBool) UnmarshalJSON(b []byte) error {
-	s := strings.Trim(string(b), "\"")
-	bValue, err := strconv.ParseBool(s)
-	if err != nil {
-		return err
-	}
-	*j = JSONBool(bValue)
-	return nil
-}
-
-func (j JSONBool) ToBool() bool {
-	return bool(j)
-}
-
-func (j *JSONFloat) UnmarshalJSON(b []byte) error {
-	s := strings.Trim(string(b), "\"")
-	fValue, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return err
-	}
-	*j = JSONFloat(fValue)
-	return nil
-}
-
-func (j JSONFloat) ToFloat64() float64 {
-	return float64(j)
-}
-
-func (j *JSONTime) UnmarshalJSON(b []byte) error {
-	s := strings.Trim(string(b), "\"")
-	tValue, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		return err
-	}
-	*j = JSONTime(time.Unix(tValue, 0))
-	return nil
-}
-
-func (j JSONTime) ToTime() time.Time {
-	return time.Time(j)
 }
