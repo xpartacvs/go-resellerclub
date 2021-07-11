@@ -24,6 +24,54 @@ type Customer interface {
 	ForgotPassword(username string) error
 	SetSuspension(suspend bool, customerId, reason string) error
 	Search(criteria CustomerCriteria, offset, limit uint16) (CustomerSearchResult, error)
+	Modify(customerId string, changes CustomerDetail) error
+}
+
+func (c *customer) Modify(customerId string, changes CustomerDetail) error {
+	customerBefore, err := c.Details(customerId)
+	if err != nil {
+		return nil
+	}
+
+	if err := changes.mergePrevious(customerBefore); err != nil {
+		return nil
+	}
+
+	data, err := changes.UrlValues()
+	if err != nil {
+		return nil
+	}
+	data.Add("customer-id", customerId)
+
+	resp, err := c.core.CallApi(http.MethodPost, "customers", "modify", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	boolResult, err := strconv.ParseBool(string(bytesResp))
+	if err != nil {
+		return err
+	}
+	if !boolResult {
+		return core.ErrRcOperationFailed
+	}
+
+	return nil
 }
 
 func (c *customer) Search(criteria CustomerCriteria, offset, limit uint16) (CustomerSearchResult, error) {

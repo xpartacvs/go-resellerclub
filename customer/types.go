@@ -32,8 +32,8 @@ type SignUpForm struct {
 	AltPhone              string `validate:"omitempty,number" query:"alt-phone,omitempty"`
 	FaxCountryCode        string `validate:"omitempty,len=2" query:"fax-cc,omitempty"`
 	Fax                   string `validate:"omitempty,number" query:"fax,omitempty"`
-	MobileCountryCode     string `validate:"omitempty,len=2" query:"Mobile-cc,omitempty"`
-	Mobile                string `validate:"omitempty,number" query:"Mobile,omitempty"`
+	MobileCountryCode     string `validate:"omitempty,len=2" query:"mobile-cc,omitempty"`
+	Mobile                string `validate:"omitempty,number" query:"mobile,omitempty"`
 	VatID                 string `validate:"omitempty" query:"vat-id,omitempty"`
 	SmsConcent            bool   `validate:"omitempty" query:"sms-consent,omitempty"`
 	EmailMarketingConcent bool   `validate:"omitempty" query:"email-marketing-consent,omitempty"`
@@ -42,36 +42,47 @@ type SignUpForm struct {
 }
 
 type CustomerDetail struct {
-	Id                      string          `json:"customerid,omitempty"`
-	Username                string          `json:"username,omitempty"`
-	ResellerId              string          `json:"resellerid,omitempty"`
-	ParentId                string          `json:"parentid,omitempty"`
-	Name                    string          `json:"name,omitempty"`
-	Company                 string          `json:"company,omitempty"`
-	Email                   string          `json:"useremail,omitempty"`
-	PhoneCountryCode        string          `json:"telnocc,omitempty"`
-	Phone                   string          `json:"telno,omitempty"`
-	MobileCountryCode       string          `json:"mobilenocc,omitempty"`
-	Mobile                  string          `json:"mobileno,omitempty"`
-	Address                 string          `json:"address1,omitempty"`
-	AddressLine2            string          `json:"address2,omitempty"`
-	AddressLine3            string          `json:"address3,omitempty"`
-	City                    string          `json:"city,omitempty"`
-	State                   string          `json:"state,omitempty"`
-	StateId                 string          `json:"stateid,omitempty"`
-	CountryCode             string          `json:"country,omitempty"`
-	Zipcode                 string          `json:"zip,omitempty"`
-	Pin                     string          `json:"pin,omitempty"`
-	TimeCreation            core.JSONTime   `json:"creationdt,omitempty"`
-	Status                  string          `json:"customerstatus,omitempty"`
-	SalesContactId          string          `json:"salescontactid,omitempty"`
-	LanguagePreference      string          `json:"langpref,omitempty"`
-	WebsiteCount            core.JSONUint16 `json:"websitecount,omitempty"`
-	TotalReceipts           core.JSONFloat  `json:"totalreceipts,omitempty"`
-	Is2FA                   core.JSONBool   `json:"twofactorauth_enabled,omitempty"`
-	Is2FASms                core.JSONBool   `json:"twofactorsmsauth_enabled,omitempty"`
-	Is2FAGoogle             core.JSONBool   `json:"twofactorgoogleauth_enabled,omitempty"`
-	IsDominicanTaxConfgired core.JSONBool   `json:"isDominicanTaxConfiguredByParent,omitempty"`
+	Id                      string          `json:"customerid,omitempty" validate:"-" query:"-"`
+	Username                string          `json:"username,omitempty" validate:"omitempty,email" query:"username"`
+	ResellerId              string          `json:"resellerid,omitempty" validate:"-" query:"-"`
+	ParentId                string          `json:"parentid,omitempty" validate:"-" query:"-"`
+	Name                    string          `json:"name,omitempty" validate:"omitempty" query:"name"`
+	Company                 string          `json:"company,omitempty" validate:"omitempty" query:"company"`
+	Email                   string          `json:"useremail,omitempty" validate:"-" query:"-"`
+	PhoneCountryCode        string          `json:"telnocc,omitempty" validate:"omitempty,len=2,number" query:"phone-cc"`
+	Phone                   string          `json:"telno,omitempty" validate:"omitempty,number" query:"phone"`
+	AltPhoneCountryCode     string          `json:"-" validate:"omitempty,len=2,number" query:"alt-phone-cc,omitempty"`
+	AltPhone                string          `json:"-" validate:"omitempty,number" query:"alt-phone,omitempty"`
+	MobileCountryCode       string          `json:"mobilenocc,omitempty" validate:"omitempty,len=2,number" query:"mobile-cc,omitempty"`
+	Mobile                  string          `json:"mobileno,omitempty" validate:"omitempty,number" query:"mobile,omitempty"`
+	FaxCountryCode          string          `json:"-" validate:"omitempty,len=2" query:"faxnocc,omitempty"`
+	Fax                     string          `json:"-" validate:"omitempty,number" query:"faxno,omitempty"`
+	Address                 string          `json:"address1,omitempty" validate:"omitempty" query:"address-line-1"`
+	AddressLine2            string          `json:"address2,omitempty" validate:"omitempty" query:"address-line-2,omitempty"`
+	AddressLine3            string          `json:"address3,omitempty" validate:"omitempty" query:"address-line-3,omitempty"`
+	City                    string          `json:"city,omitempty" validate:"omitempty" query:"city"`
+	StateId                 string          `json:"stateid,omitempty" validate:"-" query:"-"`
+	State                   string          `json:"state,omitempty" validate:"omitempty" query:"state"`
+	OtherState              string          `json:"-" validate:"omitempty" query:"other-state,omitempty"`
+	CountryCode             string          `json:"country,omitempty" validate:"omitempty,iso3166_1_alpha2" query:"country"`
+	Zipcode                 string          `json:"zip,omitempty" validate:"omitempty" query:"zipcode"`
+	LanguagePreference      string          `json:"langpref,omitempty" validate:"omitempty" query:"lang-pref"`
+	VatEurope               string          `json:"-" validate:"omitempty" query:"vat-id,omitempty"`
+	VatRussia               string          `json:"-" validate:"omitempty" query:"russia-vat-id,omitempty"`
+	GstIndia                string          `json:"-" validate:"omitempty" query:"indian-gst-id,omitempty"`
+	GstAustralia            string          `json:"-" validate:"omitempty" query:"australia-gst-id,omitempty"`
+	GstNewZealand           string          `json:"-" validate:"omitempty" query:"newzealand-gst-id,omitempty"`
+	GstSingapore            string          `json:"-" validate:"omitempty" query:"singapore-gst-id,omitempty"`
+	Pin                     string          `json:"pin,omitempty" validate:"-" query:"-"`
+	TimeCreation            core.JSONTime   `json:"creationdt,omitempty" validate:"-" query:"-"`
+	Status                  string          `json:"customerstatus,omitempty" validate:"-" query:"-"`
+	SalesContactId          string          `json:"salescontactid,omitempty" validate:"-" query:"-"`
+	WebsiteCount            core.JSONUint16 `json:"websitecount,omitempty" validate:"-" query:"-"`
+	TotalReceipts           core.JSONFloat  `json:"totalreceipts,omitempty" validate:"-" query:"-"`
+	Is2FA                   core.JSONBool   `json:"twofactorauth_enabled,omitempty" validate:"-" query:"-"`
+	Is2FASms                core.JSONBool   `json:"twofactorsmsauth_enabled,omitempty" validate:"-" query:"-"`
+	Is2FAGoogle             core.JSONBool   `json:"twofactorgoogleauth_enabled,omitempty" validate:"-" query:"-"`
+	IsDominicanTaxConfgired core.JSONBool   `json:"isDominicanTaxConfiguredByParent,omitempty" validate:"-" query:"-"`
 }
 
 type CustomerCriteria struct {
@@ -91,6 +102,84 @@ type CustomerSearchResult struct {
 	RequestedOffset uint16
 	TotalMatched    int
 	Customers       []CustomerDetail
+}
+
+func (c *CustomerDetail) mergePrevious(prev CustomerDetail) error {
+	if err := validator.New().Struct(c); err != nil {
+		return err
+	}
+
+	valueCurrent := reflect.ValueOf(c)
+	typeCurrent := reflect.TypeOf(c)
+
+	valuePrev := reflect.ValueOf(prev)
+
+	wg := sync.WaitGroup{}
+
+	for i := 0; i < valueCurrent.Elem().NumField(); i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			vFieldCurrent := valueCurrent.Elem().Field(idx)
+			vFieldPrev := valuePrev.Field(idx)
+
+			tagFielCurrent := typeCurrent.Elem().Field(idx).Tag.Get("query")
+
+			if len(tagFielCurrent) <= 0 || tagFielCurrent == "-" {
+				return
+			}
+
+			if vFieldCurrent.IsZero() {
+				if strings.HasSuffix(tagFielCurrent, "omitempty") {
+					return
+				}
+				if vFieldCurrent.Kind() == reflect.String {
+					if vFieldCurrent.CanSet() {
+						vFieldCurrent.SetString(vFieldPrev.Interface().(string))
+					}
+				}
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	return nil
+}
+
+func (c CustomerDetail) UrlValues() (url.Values, error) {
+	if err := validator.New().Struct(c); err != nil {
+		return url.Values{}, err
+	}
+
+	wg := sync.WaitGroup{}
+	rwMutex := sync.RWMutex{}
+
+	urlValues := url.Values{}
+	valueDetail := reflect.ValueOf(c)
+	typeDetail := reflect.TypeOf(c)
+
+	for i := 0; i < valueDetail.NumField(); i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			vField := valueDetail.Field(idx)
+			fieldTag := typeDetail.Field(idx).Tag.Get("query")
+
+			if len(fieldTag) > 0 && fieldTag != "-" && vField.Kind() == reflect.String {
+				if strings.HasSuffix(fieldTag, "omitempty") && vField.IsZero() {
+					return
+				}
+				queryField := strings.TrimSuffix(fieldTag, ",omitempty")
+				rwMutex.Lock()
+				urlValues.Add(queryField, vField.Interface().(string))
+				rwMutex.Unlock()
+
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	return urlValues, nil
 }
 
 func (c CustomerCriteria) UrlValues() (url.Values, error) {

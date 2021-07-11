@@ -51,6 +51,7 @@ const (
 	StatusVerificationPending EntityStatus = "Pending Verification"
 	StatusVerificationFailed  EntityStatus = "Failed Verification"
 	StatusRestorable          EntityStatus = "Pending Delete Restorable"
+	StatusNotApplicable       EntityStatus = "Not Applicable"
 )
 
 var (
