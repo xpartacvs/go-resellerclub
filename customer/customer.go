@@ -69,14 +69,21 @@ func (c *customer) Search(criteria CustomerCriteria, offset, limit uint16) (Cust
 		return CustomerSearchResult{}, err
 	}
 
-	dataBuffer := CustomerDetail{}
-	dataBuffers := []CustomerDetail{}
+	var dataBuffer CustomerDetail
+	var dataBuffers []CustomerDetail
+	var numMatched int
 	for key, dataBytes := range buffer {
-		if core.RgxNumber.MatchString(key) {
+		switch {
+		case core.RgxNumber.MatchString(key):
 			if err := json.Unmarshal(dataBytes, &dataBuffer); err != nil {
 				return CustomerSearchResult{}, err
 			}
 			dataBuffers = append(dataBuffers, dataBuffer)
+		case key == "recsindb":
+			numMatched, err = strconv.Atoi(string(dataBytes))
+			if err != nil {
+				numMatched = 0
+			}
 		}
 	}
 
@@ -84,6 +91,7 @@ func (c *customer) Search(criteria CustomerCriteria, offset, limit uint16) (Cust
 		RequestedLimit:  limit,
 		RequestedOffset: offset,
 		Customers:       dataBuffers,
+		TotalMatched:    numMatched,
 	}, nil
 }
 

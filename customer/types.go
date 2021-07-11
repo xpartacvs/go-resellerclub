@@ -89,6 +89,7 @@ type CustomerCriteria struct {
 type CustomerSearchResult struct {
 	RequestedLimit  uint16
 	RequestedOffset uint16
+	TotalMatched    int
 	Customers       []CustomerDetail
 }
 
