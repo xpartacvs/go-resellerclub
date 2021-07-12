@@ -18,6 +18,7 @@ import (
 )
 
 type EntityStatus string
+type AuthType string
 
 type core struct {
 	resellerId   string
@@ -52,6 +53,10 @@ const (
 	StatusVerificationFailed  EntityStatus = "Failed Verification"
 	StatusRestorable          EntityStatus = "Pending Delete Restorable"
 	StatusNotApplicable       EntityStatus = "Not Applicable"
+
+	AuthSms          AuthType = "sms"
+	AuthGoogle       AuthType = "gauth"
+	AuthGoogleBackup AuthType = "gauthbackup"
 )
 
 var (

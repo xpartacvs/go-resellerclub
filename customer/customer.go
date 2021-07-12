@@ -26,6 +26,40 @@ type Customer interface {
 	Search(criteria CustomerCriteria, offset, limit uint16) (CustomerSearchResult, error)
 	Modify(customerIdOrEmail string, changes CustomerDetail) error
 	GenerateOTP(customerId string) error
+	VerifyOTP(customerId, otp string, authType core.AuthType) (bool, error)
+}
+
+func (c *customer) VerifyOTP(customerId, otp string, authType core.AuthType) (bool, error) {
+	if !core.RgxNumber.MatchString(customerId) {
+		return false, core.ErrRcInvalidCredential
+	}
+
+	data := url.Values{}
+	data.Add("customerid", customerId)
+	data.Add("otp", otp)
+	data.Add("type", string(authType))
+
+	resp, err := c.core.CallApi(http.MethodPost, "customers/authenticate", "verify-otp", data)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return false, err
+		}
+		return false, errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return strconv.ParseBool(string(bytesResp))
 }
 
 func (c *customer) GenerateOTP(customerId string) error {
