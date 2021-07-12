@@ -104,6 +104,12 @@ type CustomerSearchResult struct {
 	Customers       []CustomerDetail
 }
 
+type ErrorAuthentication struct {
+	core.JSONStatusResponse
+	AuthLimit     core.JSONUint16 `json:"maxAttempts,omitempty"`
+	AuthRemaining core.JSONUint16 `json:"remainingLoginAttempts,omitempty"`
+}
+
 func (c *CustomerDetail) mergePrevious(prev CustomerDetail) error {
 	if err := validator.New().Struct(c); err != nil {
 		return err
