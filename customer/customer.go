@@ -18,10 +18,10 @@ type customer struct {
 
 type Customer interface {
 	SignUp(regForm *SignUpForm) error
-	ChangePassword(customerIdOrEmail, newPassword string) error
+	ChangePassword(customerId, newPassword string) error
 	Details(customerIdOrEmail string) (CustomerDetail, error)
-	Delete(customerIdOrEmail string) error
-	ForgotPassword(customerIdOrEmail string) error
+	Delete(customerId string) error
+	ForgotPassword(username string) error
 	Suspension(toggle bool, customerIdOrEmail, reason string) error
 	Search(criteria CustomerCriteria, offset, limit uint16) (CustomerSearchResult, error)
 	Modify(customerIdOrEmail string, changes CustomerDetail) error
@@ -193,17 +193,12 @@ func (c *customer) Suspension(toggle bool, customerIdOrEmail, reason string) err
 	return nil
 }
 
-func (c *customer) ForgotPassword(customerIdOrEmail string) error {
-	if !core.RgxEmail.MatchString(customerIdOrEmail) && !core.RgxNumber.MatchString(customerIdOrEmail) {
+func (c *customer) ForgotPassword(username string) error {
+	if !core.RgxEmail.MatchString(username) {
 		return core.ErrRcInvalidCredential
 	}
 
-	customerBefore, err := c.Details(customerIdOrEmail)
-	if err != nil {
-		return nil
-	}
-
-	resp, err := c.core.CallApi(http.MethodGet, "customers", "forgot-password", url.Values{"username": {customerBefore.Id}})
+	resp, err := c.core.CallApi(http.MethodGet, "customers", "forgot-password", url.Values{"username": {username}})
 	if err != nil {
 		return err
 	}
@@ -234,17 +229,12 @@ func (c *customer) ForgotPassword(customerIdOrEmail string) error {
 	return nil
 }
 
-func (c *customer) Delete(customerIdOrEmail string) error {
-	if !core.RgxNumber.MatchString(customerIdOrEmail) && !core.RgxEmail.MatchString(customerIdOrEmail) {
+func (c *customer) Delete(customerId string) error {
+	if !core.RgxNumber.MatchString(customerId) {
 		return core.ErrRcInvalidCredential
 	}
 
-	customerBefore, err := c.Details(customerIdOrEmail)
-	if err != nil {
-		return nil
-	}
-
-	resp, err := c.core.CallApi(http.MethodPost, "customers", "delete", url.Values{"customer-id": {customerBefore.Id}})
+	resp, err := c.core.CallApi(http.MethodPost, "customers", "delete", url.Values{"customer-id": {customerId}})
 	if err != nil {
 		return err
 	}
@@ -319,22 +309,13 @@ func (c *customer) Details(customerIdOrEmail string) (CustomerDetail, error) {
 	return ret, nil
 }
 
-func (c *customer) ChangePassword(customerIdOrEmail, newPassword string) error {
-	if !core.RgxNumber.MatchString(customerIdOrEmail) && !core.RgxEmail.MatchString(customerIdOrEmail) {
-		return core.ErrRcInvalidCredential
-	}
-
+func (c *customer) ChangePassword(customerId, newPassword string) error {
 	if !matchPasswordWithPattern(newPassword, true) {
 		return errors.New("invalid password format")
 	}
 
-	customerBefore, err := c.Details(customerIdOrEmail)
-	if err != nil {
-		return nil
-	}
-
 	data := url.Values{}
-	data.Add("customer-id", customerBefore.Id)
+	data.Add("customer-id", customerId)
 	data.Add("new-passwd", newPassword)
 
 	resp, err := c.core.CallApi(http.MethodPost, "customers/v2", "change-password", data)
