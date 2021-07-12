@@ -25,6 +25,43 @@ type Customer interface {
 	Suspension(toggle bool, customerId, reason string) error
 	Search(criteria CustomerCriteria, offset, limit uint16) (CustomerSearchResult, error)
 	Modify(customerIdOrEmail string, changes CustomerDetail) error
+	GenerateOTP(customerId string) error
+}
+
+func (c *customer) GenerateOTP(customerId string) error {
+	if !core.RgxNumber.MatchString(customerId) {
+		return core.ErrRcInvalidCredential
+	}
+
+	resp, err := c.core.CallApi(http.MethodGet, "customers/authenticate", "generate-otp", url.Values{"customerid": {customerId}})
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	boolResult, err := strconv.ParseBool(string(bytesResp))
+	if err != nil {
+		return err
+	}
+	if !boolResult {
+		return core.ErrRcOperationFailed
+	}
+
+	return nil
 }
 
 func (c *customer) Modify(customerIdOrEmail string, changes CustomerDetail) error {
