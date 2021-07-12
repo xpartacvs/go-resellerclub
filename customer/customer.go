@@ -22,7 +22,7 @@ type Customer interface {
 	Details(customerIdOrEmail string) (CustomerDetail, error)
 	Delete(customerId string) error
 	ForgotPassword(username string) error
-	Suspension(toggle bool, customerIdOrEmail, reason string) error
+	Suspension(toggle bool, customerId, reason string) error
 	Search(criteria CustomerCriteria, offset, limit uint16) (CustomerSearchResult, error)
 	Modify(customerIdOrEmail string, changes CustomerDetail) error
 }
@@ -143,14 +143,9 @@ func (c *customer) Search(criteria CustomerCriteria, offset, limit uint16) (Cust
 	}, nil
 }
 
-func (c *customer) Suspension(toggle bool, customerIdOrEmail, reason string) error {
-	if !core.RgxNumber.MatchString(customerIdOrEmail) && !core.RgxEmail.MatchString(customerIdOrEmail) {
+func (c *customer) Suspension(toggle bool, customerId, reason string) error {
+	if !core.RgxNumber.MatchString(customerId) {
 		return core.ErrRcInvalidCredential
-	}
-
-	customerBefore, err := c.Details(customerIdOrEmail)
-	if err != nil {
-		return nil
 	}
 
 	funcName := "unsuspend"
@@ -159,7 +154,7 @@ func (c *customer) Suspension(toggle bool, customerIdOrEmail, reason string) err
 	}
 
 	data := url.Values{}
-	data.Add("customer-id", customerBefore.Id)
+	data.Add("customer-id", customerId)
 	data.Add("reason", reason)
 
 	resp, err := c.core.CallApi(http.MethodPost, "customers", funcName, data)
