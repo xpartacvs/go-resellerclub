@@ -28,6 +28,43 @@ type Customer interface {
 	GenerateOTP(customerId string) error
 	VerifyOTP(customerId, otp string, authType core.AuthType) (bool, error)
 	Authenticate(username, password string) (CustomerDetail, *ErrorAuthentication)
+	GenerateToken(username, password, ip string) (string, error)
+}
+
+func (c *customer) GenerateToken(username, password, ip string) (string, error) {
+	if !matchPasswordWithPattern(password, true) {
+		return "", errors.New("invalid format on password")
+	}
+
+	if !core.RgxEmail.MatchString(username) {
+		return "", errors.New("invalid format on email")
+	}
+
+	data := url.Values{}
+	data.Add("username", username)
+	data.Add("passwd", password)
+	data.Add("ip", ip)
+
+	resp, err := c.core.CallApi(http.MethodGet, "customers", "generate-token", data)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		if err = json.Unmarshal(bytesResp, &errResponse); err != nil {
+			return "", err
+		}
+		return "", errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return string(bytesResp), nil
 }
 
 func (c *customer) Authenticate(username, password string) (CustomerDetail, *ErrorAuthentication) {
