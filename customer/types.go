@@ -106,8 +106,8 @@ type CustomerSearchResult struct {
 
 type ErrorAuthentication struct {
 	core.JSONStatusResponse
-	AuthLimit     core.JSONUint16 `json:"maxAttempts,omitempty"`
-	AuthRemaining core.JSONUint16 `json:"remainingLoginAttempts,omitempty"`
+	AuthLimit     core.JSONUint16 `json:"maxAttempts"`
+	AuthRemaining core.JSONUint16 `json:"remainingLoginAttempts"`
 }
 
 func (c *CustomerDetail) mergePrevious(prev CustomerDetail) error {
