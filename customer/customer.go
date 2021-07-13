@@ -27,9 +27,41 @@ type Customer interface {
 	Modify(customerIdOrEmail string, changes CustomerDetail) error
 	GenerateOTP(customerId string) error
 	VerifyOTP(customerId, otp string, authType core.AuthType) (bool, error)
-	Authenticate(username, password string) (CustomerDetail, *ErrorAuthentication)
 	GenerateToken(username, password, ip string) (string, error)
+	GenerateLoginToken(customerId, ip string) (string, error)
+	Authenticate(username, password string) (CustomerDetail, *ErrorAuthentication)
 	AuthenticateToken(token string) (CustomerDetail, error)
+}
+
+func (c *customer) GenerateLoginToken(customerId, ip string) (string, error) {
+	if !core.RgxNumber.MatchString(customerId) {
+		return "", errors.New("invalid format on customerid")
+	}
+
+	data := url.Values{}
+	data.Add("customer-id", customerId)
+	data.Add("ip", ip)
+
+	resp, err := c.core.CallApi(http.MethodGet, "customers", "generate-login-token", data)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		if err = json.Unmarshal(bytesResp, &errResponse); err != nil {
+			return "", err
+		}
+		return "", errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return string(bytesResp), nil
 }
 
 func (c *customer) AuthenticateToken(token string) (CustomerDetail, error) {
