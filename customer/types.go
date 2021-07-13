@@ -12,6 +12,7 @@ import (
 	"github.com/xpartacvs/go-resellerclub/core"
 )
 
+type LoginToken string
 type SignUpForm struct {
 	Username              string `validate:"required,email" query:"username"`
 	Password              string `validate:"required,min=9,max=16,rcpassword" query:"passwd"`
@@ -108,6 +109,17 @@ type ErrorAuthentication struct {
 	core.JSONStatusResponse
 	AuthLimit     core.JSONUint16 `json:"maxAttempts"`
 	AuthRemaining core.JSONUint16 `json:"remainingLoginAttempts"`
+}
+
+func (t LoginToken) String() string {
+	return string(t)
+}
+
+func (t LoginToken) UrlFullPath() string {
+	data := url.Values{}
+	data.Add("role", "customer")
+	data.Add("userLoginId", t.String())
+	return "servlet/AutoLoginServlet?" + data.Encode()
 }
 
 func (c *CustomerDetail) mergePrevious(prev CustomerDetail) error {

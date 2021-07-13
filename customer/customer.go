@@ -28,14 +28,14 @@ type Customer interface {
 	GenerateOTP(customerId string) error
 	VerifyOTP(customerId, otp string, authType core.AuthType) (bool, error)
 	GenerateToken(username, password, ip string) (string, error)
-	GenerateLoginToken(customerId, ip string) (string, error)
+	GenerateLoginToken(customerId, ip string) (LoginToken, error)
 	Authenticate(username, password string) (CustomerDetail, *ErrorAuthentication)
 	AuthenticateToken(token string) (CustomerDetail, error)
 }
 
-func (c *customer) GenerateLoginToken(customerId, ip string) (string, error) {
+func (c *customer) GenerateLoginToken(customerId, ip string) (LoginToken, error) {
 	if !core.RgxNumber.MatchString(customerId) {
-		return "", errors.New("invalid format on customerid")
+		return LoginToken(""), errors.New("invalid format on customerid")
 	}
 
 	data := url.Values{}
@@ -44,24 +44,24 @@ func (c *customer) GenerateLoginToken(customerId, ip string) (string, error) {
 
 	resp, err := c.core.CallApi(http.MethodGet, "customers", "generate-login-token", data)
 	if err != nil {
-		return "", err
+		return LoginToken(""), err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return LoginToken(""), err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		if err = json.Unmarshal(bytesResp, &errResponse); err != nil {
-			return "", err
+			return LoginToken(""), err
 		}
-		return "", errors.New(strings.ToLower(errResponse.Message))
+		return LoginToken(""), errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	return string(bytesResp), nil
+	return LoginToken(string(bytesResp)), nil
 }
 
 func (c *customer) AuthenticateToken(token string) (CustomerDetail, error) {
