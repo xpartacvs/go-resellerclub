@@ -30,7 +30,43 @@ type Customer interface {
 	GenerateToken(username, password, ip string) (string, error)
 	GenerateLoginToken(customerId, ip string) (LoginToken, error)
 	Authenticate(username, password string) (CustomerDetail, *ErrorAuthentication)
-	AuthenticateToken(token string) (CustomerDetail, error)
+	AuthenticateToken(token string, withHistory bool) (CustomerDetail, error)
+}
+
+func (c *customer) AuthenticateToken(token string, withHistory bool) (CustomerDetail, error) {
+	ret := CustomerDetail{}
+	data := url.Values{}
+	data.Add("token", token)
+
+	funcName := "authenticate-token"
+	if !withHistory {
+		funcName = "authenticate-token-without-history"
+	}
+
+	resp, err := c.core.CallApi(http.MethodGet, "customers", funcName, data)
+	if err != nil {
+		return ret, err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ret, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		if err = json.Unmarshal(bytesResp, &errResponse); err != nil {
+			return ret, err
+		}
+		return ret, errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	if err = json.Unmarshal(bytesResp, &ret); err != nil {
+		return ret, err
+	}
+
+	return ret, nil
 }
 
 func (c *customer) GenerateLoginToken(customerId, ip string) (LoginToken, error) {
@@ -62,37 +98,6 @@ func (c *customer) GenerateLoginToken(customerId, ip string) (LoginToken, error)
 	}
 
 	return LoginToken(string(bytesResp)), nil
-}
-
-func (c *customer) AuthenticateToken(token string) (CustomerDetail, error) {
-	ret := CustomerDetail{}
-	data := url.Values{}
-	data.Add("token", token)
-
-	resp, err := c.core.CallApi(http.MethodGet, "customers", "authenticate-token", data)
-	if err != nil {
-		return ret, err
-	}
-	defer resp.Body.Close()
-
-	bytesResp, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return ret, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		errResponse := core.JSONStatusResponse{}
-		if err = json.Unmarshal(bytesResp, &errResponse); err != nil {
-			return ret, err
-		}
-		return ret, errors.New(strings.ToLower(errResponse.Message))
-	}
-
-	if err = json.Unmarshal(bytesResp, &ret); err != nil {
-		return ret, err
-	}
-
-	return ret, nil
 }
 
 func (c *customer) GenerateToken(username, password, ip string) (string, error) {
