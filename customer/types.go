@@ -1,10 +1,10 @@
 package customer
 
 import (
-	"fmt"
 	"net/url"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -256,7 +256,7 @@ func (c CustomerCriteria) UrlValues() (url.Values, error) {
 				switch vField.Kind() {
 				case reflect.Float32, reflect.Float64:
 					rwMutex.Lock()
-					urlValues.Add(queryField, fmt.Sprintf("%.2f", vField.Float()))
+					urlValues.Add(queryField, strconv.FormatFloat(vField.Float(), 'f', 2, 64))
 					rwMutex.Unlock()
 				case reflect.String:
 					rwMutex.Lock()
@@ -306,7 +306,7 @@ func (r SignUpForm) UrlValues() (url.Values, error) {
 					rwMutex.Unlock()
 				case reflect.Bool:
 					rwMutex.Lock()
-					urlValues.Add(queryField, fmt.Sprintf("%t", vField.Bool()))
+					urlValues.Add(queryField, strconv.FormatBool(vField.Bool()))
 					rwMutex.Unlock()
 				}
 			}
