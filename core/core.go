@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -102,9 +102,9 @@ func (c Criteria) UrlValues() (url.Values, error) {
 				switch vField.Kind() {
 				case reflect.Struct:
 					if vField.Type().ConvertibleTo(reflect.TypeOf(time.Time{})) {
-						timeField := vField.Interface().(time.Time)
+						unixTimestamp := vField.Interface().(time.Time).Unix()
 						rwMutex.Lock()
-						urlValues.Add(queryField, fmt.Sprintf("%d", timeField.Unix()))
+						urlValues.Add(queryField, strconv.FormatInt(unixTimestamp, 64))
 						rwMutex.Unlock()
 					}
 				case reflect.Slice:
@@ -148,7 +148,7 @@ func (c *core) CallApi(method, namespace, apiName string, data url.Values) (*htt
 	urlPath := c.createUrlPath(namespace, apiName)
 	switch method {
 	case http.MethodGet:
-		return http.Get(fmt.Sprintf("%s?%s&%s", urlPath, c.createRequiredQueryString(), data.Encode()))
+		return http.Get(urlPath + "?" + c.createRequiredQueryString() + "&" + data.Encode())
 	case http.MethodPost:
 		data.Add("auth-userid", c.resellerId)
 		data.Add("api-key", c.apiKey)
@@ -158,20 +158,11 @@ func (c *core) CallApi(method, namespace, apiName string, data url.Values) (*htt
 }
 
 func (c *core) createUrlPath(namespace, apiName string) string {
-	return fmt.Sprintf(
-		"%s/%s/%s.json",
-		host[c.isProduction],
-		namespace,
-		apiName,
-	)
+	return host[c.isProduction] + "/" + namespace + "/" + apiName + ".json"
 }
 
 func (c *core) createRequiredQueryString() string {
-	return fmt.Sprintf(
-		"auth-userid=%s&api-key=%s",
-		url.QueryEscape(c.resellerId),
-		url.QueryEscape(c.apiKey),
-	)
+	return "auth-userid=" + url.QueryEscape(c.resellerId) + "&api-key=" + url.QueryEscape(c.apiKey)
 }
 
 func New(resellerId, apiKey string, isProduction bool) Core {
