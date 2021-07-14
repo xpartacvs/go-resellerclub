@@ -7,6 +7,13 @@ type PrivacyState string
 type DomainRegistrationStatus string
 type SortOrder map[SortBy]bool
 
+type SuggestNames map[string]struct {
+	Status string `json:"status"`
+	InGa   string `json:"in_ga"`
+	Score  string `json:"score"`
+	Spin   string `json:"spin"`
+}
+
 const (
 	SortByOrderID          SortBy = "orderid"
 	SortByCustomerID       SortBy = "customerid"

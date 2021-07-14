@@ -19,6 +19,7 @@ type domain struct {
 type Domain interface {
 	SearchOrders(criteria OrderCriteria) error
 	CheckAvailability(domainsWithoutTLD, tlds []string) (DomainAvailabilities, error)
+	SuggestNames(keyword, tldOnly string, exactMatch, adult bool) (SuggestNames, error)
 }
 
 func New(c core.Core) Domain {
@@ -58,28 +59,28 @@ func (d *domain) CheckAvailability(domainsWithoutTLD, tlds []string) (DomainAvai
 
 	resp, err := d.core.CallApi(http.MethodGet, "domains", "available", data)
 	if err != nil {
-		return DomainAvailabilities{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return DomainAvailabilities{}, err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		err = json.Unmarshal(bytesResp, &errResponse)
 		if err != nil {
-			return DomainAvailabilities{}, err
+			return nil, err
 		}
-		return DomainAvailabilities{}, errors.New(strings.ToLower(errResponse.Message))
+		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
 	availabilities := DomainAvailabilities{}
 	err = json.Unmarshal(bytesResp, &availabilities)
 	if err != nil {
-		return DomainAvailabilities{}, err
+		return nil, err
 	}
 
 	return availabilities, nil
@@ -104,4 +105,47 @@ func (d *domain) SearchOrders(criteria OrderCriteria) error {
 	d.core.PrintResponse(bytesResp)
 
 	return nil
+}
+
+func (d *domain) SuggestNames(keyword, tldOnly string, exactMatch, adult bool) (SuggestNames, error) {
+	data := make(url.Values)
+	data.Add("keyword", keyword)
+	if exactMatch {
+		data.Add("exact-match", "True")
+	} else {
+		data.Add("exact-match", "False")
+	}
+	if adult {
+		data.Add("adult", "True")
+	} else {
+		data.Add("adult", "False")
+	}
+
+	resp, err := d.core.CallApi(http.MethodGet, "domains/v5", "suggest-names", data)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return nil, err
+		}
+		return nil, errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	suggestNames := SuggestNames{}
+	err = json.Unmarshal(bytesResp, &suggestNames)
+	if err != nil {
+		return nil, err
+	}
+
+	return suggestNames, nil
 }

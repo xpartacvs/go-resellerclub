@@ -17,3 +17,6 @@
 # Custom
 main.go
 **/*.txt
+
+# Config
+.env
