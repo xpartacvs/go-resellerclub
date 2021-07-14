@@ -40,6 +40,7 @@ type Criteria struct {
 
 type Core interface {
 	CallApi(method, namespace, apiName string, data url.Values) (*http.Response, error)
+	IsProduction() bool
 	PrintResponse(data []byte) error
 }
 
@@ -72,6 +73,10 @@ var (
 	ErrRcOperationFailed      = errors.New("operation failed")
 	ErrRcInvalidCredential    = errors.New("invalid credential")
 )
+
+func (c *core) IsProduction() bool {
+	return c.isProduction
+}
 
 func (c Criteria) UrlValues() (url.Values, error) {
 	if err := validator.New().Struct(c); err != nil {

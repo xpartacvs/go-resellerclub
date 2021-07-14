@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -28,7 +29,7 @@ type Customer interface {
 	GenerateOTP(customerId string) error
 	VerifyOTP(customerId, otp string, authType core.AuthType) (bool, error)
 	GenerateToken(username, password, ip string) (string, error)
-	GenerateLoginToken(customerId, ip string) (LoginToken, error)
+	GenerateLoginToken(customerId, ip, dashboardBaseURL string) (LoginToken, error)
 	Authenticate(username, password string) (CustomerDetail, *ErrorAuthentication)
 	AuthenticateToken(token string, withHistory bool) (CustomerDetail, error)
 }
@@ -69,9 +70,19 @@ func (c *customer) AuthenticateToken(token string, withHistory bool) (CustomerDe
 	return ret, nil
 }
 
-func (c *customer) GenerateLoginToken(customerId, ip string) (LoginToken, error) {
+func (c *customer) GenerateLoginToken(customerId, ip, dashboardBaseURL string) (LoginToken, error) {
+	token := LoginToken{}
 	if !core.RgxNumber.MatchString(customerId) {
-		return LoginToken(""), errors.New("invalid format on customerid")
+		return token, errors.New("invalid format on customerid")
+	}
+
+	baseUrl := "http://demo.myorderbox.com"
+	if c.core.IsProduction() {
+		rgxUrl := regexp.MustCompile(`^https?\:\/\/.*$`)
+		if !rgxUrl.MatchString(dashboardBaseURL) {
+			return token, errors.New("dashboard's baseurl is required in production mode")
+		}
+		baseUrl = dashboardBaseURL
 	}
 
 	data := url.Values{}
@@ -80,24 +91,27 @@ func (c *customer) GenerateLoginToken(customerId, ip string) (LoginToken, error)
 
 	resp, err := c.core.CallApi(http.MethodGet, "customers", "generate-login-token", data)
 	if err != nil {
-		return LoginToken(""), err
+		return token, err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return LoginToken(""), err
+		return token, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		if err = json.Unmarshal(bytesResp, &errResponse); err != nil {
-			return LoginToken(""), err
+			return token, err
 		}
-		return LoginToken(""), errors.New(strings.ToLower(errResponse.Message))
+		return token, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	return LoginToken(string(bytesResp)), nil
+	token.baseUrl = baseUrl
+	token.token = string(bytesResp)
+
+	return token, nil
 }
 
 func (c *customer) GenerateToken(username, password, ip string) (string, error) {

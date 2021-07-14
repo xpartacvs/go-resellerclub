@@ -12,7 +12,11 @@ import (
 	"github.com/xpartacvs/go-resellerclub/core"
 )
 
-type LoginToken string
+type LoginToken struct {
+	token   string
+	baseUrl string
+}
+
 type SignUpForm struct {
 	Username              string `validate:"required,email" query:"username"`
 	Password              string `validate:"required,min=9,max=16,rcpassword" query:"passwd"`
@@ -112,7 +116,7 @@ type ErrorAuthentication struct {
 }
 
 func (t LoginToken) String() string {
-	return string(t)
+	return t.token
 }
 
 func (t LoginToken) UrlFullPath() string {
@@ -120,6 +124,10 @@ func (t LoginToken) UrlFullPath() string {
 	data.Add("role", "customer")
 	data.Add("userLoginId", t.String())
 	return "servlet/AutoLoginServlet?" + data.Encode()
+}
+
+func (t LoginToken) LoginUrl() string {
+	return strings.TrimRight(t.baseUrl, "/") + t.UrlFullPath()
 }
 
 func (c *CustomerDetail) mergePrevious(prev CustomerDetail) error {
