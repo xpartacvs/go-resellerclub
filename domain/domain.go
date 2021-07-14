@@ -59,28 +59,28 @@ func (d *domain) CheckAvailability(domainsWithoutTLD, tlds []string) (DomainAvai
 
 	resp, err := d.core.CallApi(http.MethodGet, "domains", "available", data)
 	if err != nil {
-		return DomainAvailabilities{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return DomainAvailabilities{}, err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		err = json.Unmarshal(bytesResp, &errResponse)
 		if err != nil {
-			return DomainAvailabilities{}, err
+			return nil, err
 		}
-		return DomainAvailabilities{}, errors.New(strings.ToLower(errResponse.Message))
+		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
 	availabilities := DomainAvailabilities{}
 	err = json.Unmarshal(bytesResp, &availabilities)
 	if err != nil {
-		return DomainAvailabilities{}, err
+		return nil, err
 	}
 
 	return availabilities, nil
