@@ -30,7 +30,7 @@ type Customer interface {
 	VerifyOTP(customerId, otp string, authType core.AuthType) (bool, error)
 	GenerateToken(username, password, ip string) (string, error)
 	GenerateLoginToken(customerId, ip, dashboardBaseURL string) (*LoginToken, error)
-	Authenticate(username, password string) (CustomerDetail, *ErrorAuthentication)
+	Authenticate(username, password string) (*CustomerDetail, *ErrorAuthentication)
 	AuthenticateToken(token string, withHistory bool) (*CustomerDetail, error)
 }
 
@@ -152,8 +152,7 @@ func (c *customer) GenerateToken(username, password, ip string) (string, error) 
 	return string(bytesResp), nil
 }
 
-func (c *customer) Authenticate(username, password string) (CustomerDetail, *ErrorAuthentication) {
-	ret := CustomerDetail{}
+func (c *customer) Authenticate(username, password string) (*CustomerDetail, *ErrorAuthentication) {
 	errAuth := &ErrorAuthentication{
 		JSONStatusResponse: core.JSONStatusResponse{
 			Status:  "ERROR",
@@ -163,7 +162,7 @@ func (c *customer) Authenticate(username, password string) (CustomerDetail, *Err
 
 	if !core.RgxEmail.MatchString(username) || !matchPasswordWithPattern(password, true) {
 		errAuth.Message = "Invalid format of username or password"
-		return ret, errAuth
+		return nil, errAuth
 	}
 
 	data := url.Values{}
@@ -173,28 +172,29 @@ func (c *customer) Authenticate(username, password string) (CustomerDetail, *Err
 	resp, err := c.core.CallApi(http.MethodPost, "customers/v2", "authenticate", data)
 	if err != nil {
 		errAuth.Message = err.Error()
-		return ret, errAuth
+		return nil, errAuth
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
 		errAuth.Message = err.Error()
-		return ret, errAuth
+		return nil, errAuth
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		err = json.Unmarshal(bytesResp, errAuth)
 		if err != nil {
 			errAuth.Message = err.Error()
-			return ret, errAuth
+			return nil, errAuth
 		}
-		return ret, errAuth
+		return nil, errAuth
 	}
 
-	if err = json.Unmarshal(bytesResp, &ret); err != nil {
+	ret := new(CustomerDetail)
+	if err = json.Unmarshal(bytesResp, ret); err != nil {
 		errAuth.Message = err.Error()
-		return ret, errAuth
+		return nil, errAuth
 	}
 
 	return ret, nil
