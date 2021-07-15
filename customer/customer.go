@@ -31,11 +31,10 @@ type Customer interface {
 	GenerateToken(username, password, ip string) (string, error)
 	GenerateLoginToken(customerId, ip, dashboardBaseURL string) (LoginToken, error)
 	Authenticate(username, password string) (CustomerDetail, *ErrorAuthentication)
-	AuthenticateToken(token string, withHistory bool) (CustomerDetail, error)
+	AuthenticateToken(token string, withHistory bool) (*CustomerDetail, error)
 }
 
-func (c *customer) AuthenticateToken(token string, withHistory bool) (CustomerDetail, error) {
-	ret := CustomerDetail{}
+func (c *customer) AuthenticateToken(token string, withHistory bool) (*CustomerDetail, error) {
 	data := url.Values{}
 	data.Add("token", token)
 
@@ -46,25 +45,26 @@ func (c *customer) AuthenticateToken(token string, withHistory bool) (CustomerDe
 
 	resp, err := c.core.CallApi(http.MethodGet, "customers", funcName, data)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		if err = json.Unmarshal(bytesResp, &errResponse); err != nil {
-			return ret, err
+			return nil, err
 		}
-		return ret, errors.New(strings.ToLower(errResponse.Message))
+		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	if err = json.Unmarshal(bytesResp, &ret); err != nil {
-		return ret, err
+	ret := new(CustomerDetail)
+	if err = json.Unmarshal(bytesResp, ret); err != nil {
+		return nil, err
 	}
 
 	return ret, nil
