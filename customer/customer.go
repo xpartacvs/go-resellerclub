@@ -29,7 +29,7 @@ type Customer interface {
 	GenerateOTP(customerId string) error
 	VerifyOTP(customerId, otp string, authType core.AuthType) (bool, error)
 	GenerateToken(username, password, ip string) (string, error)
-	GenerateLoginToken(customerId, ip, dashboardBaseURL string) (*LoginToken, error)
+	GenerateLoginToken(customerId, ip, dashboardBaseURL string) (LoginToken, error)
 	Authenticate(username, password string) (*CustomerDetail, *ErrorAuthentication)
 	AuthenticateToken(token string, withHistory bool) (*CustomerDetail, error)
 }
@@ -70,7 +70,7 @@ func (c *customer) AuthenticateToken(token string, withHistory bool) (*CustomerD
 	return ret, nil
 }
 
-func (c *customer) GenerateLoginToken(customerId, ip, dashboardBaseURL string) (*LoginToken, error) {
+func (c *customer) GenerateLoginToken(customerId, ip, dashboardBaseURL string) (LoginToken, error) {
 	// token := LoginToken{}
 	if !core.RgxNumber.MatchString(customerId) {
 		return nil, errors.New("invalid format on customerid")
@@ -108,7 +108,7 @@ func (c *customer) GenerateLoginToken(customerId, ip, dashboardBaseURL string) (
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	token := &LoginToken{
+	token := &loginToken{
 		baseUrl: baseUrl,
 		token:   string(bytesResp),
 	}

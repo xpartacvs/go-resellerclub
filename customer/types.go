@@ -12,9 +12,15 @@ import (
 	"github.com/xpartacvs/go-resellerclub/core"
 )
 
-type LoginToken struct {
+type loginToken struct {
 	token   string
 	baseUrl string
+}
+
+type LoginToken interface {
+	String() string
+	UrlFullPath() string
+	LoginUrl() string
 }
 
 type SignUpForm struct {
@@ -115,18 +121,18 @@ type ErrorAuthentication struct {
 	AuthRemaining core.JSONUint16 `json:"remainingLoginAttempts"`
 }
 
-func (t LoginToken) String() string {
+func (t loginToken) String() string {
 	return t.token
 }
 
-func (t LoginToken) UrlFullPath() string {
+func (t loginToken) UrlFullPath() string {
 	data := url.Values{}
 	data.Add("role", "customer")
 	data.Add("userLoginId", t.String())
 	return "servlet/AutoLoginServlet?" + data.Encode()
 }
 
-func (t LoginToken) LoginUrl() string {
+func (t loginToken) LoginUrl() string {
 	return strings.TrimRight(t.baseUrl, "/") + t.UrlFullPath()
 }
 
