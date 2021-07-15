@@ -336,3 +336,546 @@ func (d *domain) AddChildNameServer(orderID int, cns string, ips []string) error
 
 	return nil
 }
+
+func (d *domain) ModifyChildNameServerHostName(orderID int, oldCNS, newCNS string) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("old-cns", oldCNS)
+	data.Add("new-cns", newCNS)
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "modify-cns-name", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) ModifyChildNameServerIPAddress(orderID int, cns, oldIP, newIP string) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("cns", cns)
+	data.Add("old-ip", oldIP)
+	data.Add("new-ip", newIP)
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "modify-cns-ip", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) DeletingChildNameServerIPAddress(orderID int, cns string, ips []string) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("cns", cns)
+	for _, ip := range ips {
+		data.Add("ip", ip)
+	}
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "delete-cns-ip", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) ModifyContacts(orderID, regContactID, adminContactID, techContactID, billingContactID int, sixtyDayLockOptout, designatedAgent bool, attrName, attrValue string) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("reg-contact-id", strconv.Itoa(regContactID))
+	data.Add("admin-contact-id", strconv.Itoa(adminContactID))
+	data.Add("tech-contact-id", strconv.Itoa(techContactID))
+	data.Add("billing-contact-id", strconv.Itoa(billingContactID))
+	data.Add("sixty-day-lock-optout", strconv.FormatBool(sixtyDayLockOptout))
+	data.Add("designated-agent", strconv.FormatBool(designatedAgent))
+	data.Add("attr-name", attrName)
+	data.Add("attr-value", attrValue)
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "modify-contact", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) ModifyPrivacyProtectionStatus(orderID int, protectPrivacy bool, reason string) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("protect-privacy", strconv.FormatBool(protectPrivacy))
+	data.Add("reason", reason)
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "modify-privacy-protection", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) ModifyAuthCode(orderID int, authCode string) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("auth-code", authCode)
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "modify-auth-code", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) ApplyTheftProtectionLock(orderID int) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "enable-theft-protection", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) RemoveTheftProtectionLock(orderID int) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "disable-theft-protection", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) GettheListofLocksAppliedOnDomainName(orderID int) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+
+	resp, err := d.core.CallApi(http.MethodGet, "domains", "locks", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+// Issues:
+// - Missing documentation
+// func (d *domain) GetTELCTHLoginDetails()
+
+func (d *domain) ModifyTELWhoisPreference(orderID int, whoisType, publish string) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("whois-type", whoisType)
+	data.Add("publish", publish)
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "tel/modify-whois-pref", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) ResendTransferApprovalMail(orderID int) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "resend-rfa", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) ReleaseUKDomainName(orderID int, newTag string) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("new-tag", newTag)
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "uk/release", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) CancelTransfer(orderID int) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "cancel-transfer", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) Suspend(orderID int, reason string) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("reason", reason)
+
+	resp, err := d.core.CallApi(http.MethodPost, "orders", "suspend", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) Unsuspend(orderID int) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+
+	resp, err := d.core.CallApi(http.MethodPost, "orders", "unsuspend", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) Delete(orderID int) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "delete", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) Restore(orderID int, invoiceOption string) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("invoice-option", invoiceOption)
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "restore", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) RecheckingNSWithDERegistry(orderID int) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "de/recheck-ns", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
+
+func (d *domain) AssociatingOrDissociatingXXXMembershipTokenID(orderID int, associationID string) error {
+	data := make(url.Values)
+	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("association-id", associationID)
+
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "dotxxx/association-details", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
+}
