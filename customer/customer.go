@@ -20,7 +20,7 @@ type customer struct {
 type Customer interface {
 	SignUp(regForm *SignUpForm) error
 	ChangePassword(customerId, newPassword string) error
-	Details(customerIdOrEmail string) (CustomerDetail, error)
+	Details(customerIdOrEmail string) (*CustomerDetail, error)
 	Delete(customerId string) error
 	ForgotPassword(username string) error
 	Suspension(toggle bool, customerId, reason string) error
@@ -500,8 +500,7 @@ func (c *customer) Delete(customerId string) error {
 	return nil
 }
 
-func (c *customer) Details(customerIdOrEmail string) (CustomerDetail, error) {
-	ret := CustomerDetail{}
+func (c *customer) Details(customerIdOrEmail string) (*CustomerDetail, error) {
 	data := url.Values{}
 
 	var funcName, query string
@@ -513,32 +512,33 @@ func (c *customer) Details(customerIdOrEmail string) (CustomerDetail, error) {
 		funcName = "details-by-id"
 		query = "customer-id"
 	default:
-		return ret, core.ErrRcInvalidCredential
+		return nil, core.ErrRcInvalidCredential
 	}
 	data.Add(query, customerIdOrEmail)
 
 	resp, err := c.core.CallApi(http.MethodGet, "customers", funcName, data)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		err = json.Unmarshal(bytesResp, &errResponse)
 		if err != nil {
-			return ret, err
+			return nil, err
 		}
-		return ret, errors.New(strings.ToLower(errResponse.Message))
+		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	if err = json.Unmarshal(bytesResp, &ret); err != nil {
-		return ret, err
+	ret := new(CustomerDetail)
+	if err = json.Unmarshal(bytesResp, ret); err != nil {
+		return nil, err
 	}
 
 	return ret, nil

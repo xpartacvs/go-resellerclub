@@ -130,7 +130,7 @@ func (t LoginToken) LoginUrl() string {
 	return strings.TrimRight(t.baseUrl, "/") + t.UrlFullPath()
 }
 
-func (c *CustomerDetail) mergePrevious(prev CustomerDetail) error {
+func (c *CustomerDetail) mergePrevious(prev *CustomerDetail) error {
 	if err := validator.New().Struct(c); err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func (c *CustomerDetail) mergePrevious(prev CustomerDetail) error {
 		go func(idx int) {
 			defer wg.Done()
 			vFieldCurrent := valueCurrent.Elem().Field(idx)
-			vFieldPrev := valuePrev.Field(idx)
+			vFieldPrev := valuePrev.Elem().Field(idx)
 
 			tagFielCurrent := typeCurrent.Elem().Field(idx).Tag.Get("query")
 
