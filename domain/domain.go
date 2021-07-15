@@ -21,6 +21,7 @@ type Domain interface {
 	SearchOrders(criteria OrderCriteria) error
 	CheckAvailability(domainsWithoutTLD, tlds []string) (DomainAvailabilities, error)
 	SuggestNames(keyword, tldOnly string, exactMatch, adult bool) (SuggestNames, error)
+	GetCustomerDefaultNameServers(customerID int) ([]string, error)
 }
 
 func New(c core.Core) Domain {
@@ -186,31 +187,37 @@ func (d *domain) Renew(orderID, years, expDate int, purchasePrivacy, autoRenew b
 	return nil
 }
 
-func (d *domain) GetCustomerDefaultNameServers(customerID int) error {
+func (d *domain) GetCustomerDefaultNameServers(customerID int) ([]string, error) {
 	data := make(url.Values)
 	data.Add("customer-id", strconv.Itoa(customerID))
 
 	resp, err := d.core.CallApi(http.MethodGet, "domains", "customer-default-ns", data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		err = json.Unmarshal(bytesResp, &errResponse)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return errors.New(strings.ToLower(errResponse.Message))
+		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	return nil
+	result := make([]string, 0)
+	err = json.Unmarshal(bytesResp, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (d *domain) GetOrderID(domainName string) error {
