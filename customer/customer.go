@@ -24,8 +24,8 @@ type Customer interface {
 	Delete(customerId string) error
 	ForgotPassword(username string) error
 	Suspension(toggle bool, customerId, reason string) error
-	Search(criteria CustomerCriteria, offset, limit uint16) (CustomerSearchResult, error)
-	Modify(customerIdOrEmail string, changes CustomerDetail) error
+	Search(criteria CustomerCriteria, offset, limit uint16) (*CustomerSearchResult, error)
+	Modify(customerIdOrEmail string, modification CustomerDetail) error
 	GenerateOTP(customerId string) error
 	VerifyOTP(customerId, otp string, authType core.AuthType) (bool, error)
 	GenerateToken(username, password, ip string) (string, error)
@@ -269,17 +269,17 @@ func (c *customer) GenerateOTP(customerId string) error {
 	return nil
 }
 
-func (c *customer) Modify(customerIdOrEmail string, changes CustomerDetail) error {
+func (c *customer) Modify(customerIdOrEmail string, modification CustomerDetail) error {
 	customerBefore, err := c.Details(customerIdOrEmail)
 	if err != nil {
 		return nil
 	}
 
-	if err := changes.mergePrevious(customerBefore); err != nil {
+	if err := modification.mergePrevious(customerBefore); err != nil {
 		return nil
 	}
 
-	data, err := changes.UrlValues()
+	data, err := modification.UrlValues()
 	if err != nil {
 		return nil
 	}
@@ -316,39 +316,39 @@ func (c *customer) Modify(customerIdOrEmail string, changes CustomerDetail) erro
 	return nil
 }
 
-func (c *customer) Search(criteria CustomerCriteria, offset, limit uint16) (CustomerSearchResult, error) {
+func (c *customer) Search(criteria CustomerCriteria, offset, limit uint16) (*CustomerSearchResult, error) {
 	if limit < 10 || limit > 500 {
-		return CustomerSearchResult{}, errors.New("limit must be in range of 10 to 500")
+		return nil, errors.New("limit must be in range of 10 to 500")
 	}
 	if offset <= 0 {
-		return CustomerSearchResult{}, errors.New("offset must greater than 0")
+		return nil, errors.New("offset must greater than 0")
 	}
 
 	data, err := criteria.UrlValues()
 	if err != nil {
-		return CustomerSearchResult{}, err
+		return nil, err
 	}
 	data.Add("no-of-records", strconv.FormatUint(uint64(limit), 10))
 	data.Add("page-no", strconv.FormatUint(uint64(offset), 10))
 
 	resp, err := c.core.CallApi(http.MethodGet, "customers", "search", data)
 	if err != nil {
-		return CustomerSearchResult{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return CustomerSearchResult{}, err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		err = json.Unmarshal(bytesResp, &errResponse)
 		if err != nil {
-			return CustomerSearchResult{}, err
+			return nil, err
 		}
-		return CustomerSearchResult{}, errors.New(strings.ToLower(errResponse.Message))
+		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
 	replacer := strings.NewReplacer("customer.", "")
@@ -356,7 +356,7 @@ func (c *customer) Search(criteria CustomerCriteria, offset, limit uint16) (Cust
 
 	var buffer map[string]core.JSONBytes
 	if err := json.Unmarshal([]byte(strResp), &buffer); err != nil {
-		return CustomerSearchResult{}, err
+		return nil, err
 	}
 
 	var dataBuffer CustomerDetail
@@ -366,7 +366,7 @@ func (c *customer) Search(criteria CustomerCriteria, offset, limit uint16) (Cust
 		switch {
 		case core.RgxNumber.MatchString(key):
 			if err := json.Unmarshal(dataBytes, &dataBuffer); err != nil {
-				return CustomerSearchResult{}, err
+				return nil, err
 			}
 			dataBuffers = append(dataBuffers, dataBuffer)
 		case key == "recsindb":
@@ -377,7 +377,7 @@ func (c *customer) Search(criteria CustomerCriteria, offset, limit uint16) (Cust
 		}
 	}
 
-	return CustomerSearchResult{
+	return &CustomerSearchResult{
 		RequestedLimit:  limit,
 		RequestedOffset: offset,
 		Customers:       dataBuffers,
