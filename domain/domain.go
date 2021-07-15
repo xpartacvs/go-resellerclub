@@ -146,8 +146,7 @@ func (d *domain) SuggestNames(keyword, tldOnly string, exactMatch, adult bool) (
 }
 
 // TODO
-// Missing: attr-name Map[name], attrValue Map[value]
-func (d *domain) Register(domainName string, years int, ns []string, customerID, regContactID, adminContactID, techContactID, billingContactID int, invoiceOption string, purchasePrivacy bool, protectPrivacy bool, autoRenew bool, discountAmount float64, purchasePremiumDNS bool) error {
+func (d *domain) Register(domainName string, years int, ns []string, customerID, regContactID, adminContactID, techContactID, billingContactID int, invoiceOption string, purchasePrivacy bool, protectPrivacy bool, autoRenew bool, attrName, attrValue string, discountAmount float64, purchasePremiumDNS bool) error {
 	// data := make(url.Values)
 	return nil
 }
