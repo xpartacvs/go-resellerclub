@@ -54,6 +54,7 @@ const (
 	StatusVerificationFailed  EntityStatus = "Failed Verification"
 	StatusRestorable          EntityStatus = "Pending Delete Restorable"
 	StatusNotApplicable       EntityStatus = "Not Applicable"
+	StatusNotAvailable        EntityStatus = "NA"
 
 	AuthSms          AuthType = "sms"
 	AuthGoogle       AuthType = "gauth"
