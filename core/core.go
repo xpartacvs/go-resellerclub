@@ -41,7 +41,6 @@ type Criteria struct {
 type Core interface {
 	CallApi(method, namespace, apiName string, data url.Values) (*http.Response, error)
 	IsProduction() bool
-	PrintResponse(data []byte) error
 }
 
 const (
@@ -141,7 +140,7 @@ func (c Criteria) UrlValues() (url.Values, error) {
 	return urlValues, nil
 }
 
-func (c *core) PrintResponse(data []byte) error {
+func PrintResponse(data []byte) error {
 	var buffer bytes.Buffer
 	if err := json.Indent(&buffer, data, "", "\t"); err != nil {
 		return err
