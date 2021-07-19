@@ -1,5 +1,7 @@
 package domain
 
+import "github.com/xpartacvs/go-resellerclub/core"
+
 type SortBy string
 type DomainKey string
 
@@ -8,10 +10,10 @@ type DomainRegistrationStatus string
 type SortOrder map[SortBy]bool
 
 type SuggestNames map[string]struct {
-	Status string `json:"status"`
-	InGa   string `json:"in_ga"`
-	Score  string `json:"score"`
-	Spin   string `json:"spin"`
+	Status string         `json:"status"`
+	InGa   core.JSONBool  `json:"in_ga"`
+	Score  core.JSONFloat `json:"score"`
+	Spin   string         `json:"spin"`
 }
 
 const (
