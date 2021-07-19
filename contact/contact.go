@@ -52,7 +52,7 @@ func (c *contact) Add(details *ContactDetail, attributes core.EntityAttributes) 
 		return errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	details.CustomerId = string(bytesResp)
+	details.Id = string(bytesResp)
 	return nil
 }
 
