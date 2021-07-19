@@ -155,14 +155,14 @@ func (c *CustomerDetail) mergePrevious(prev *CustomerDetail) error {
 			vFieldCurrent := valueCurrent.Elem().Field(idx)
 			vFieldPrev := valuePrev.Elem().Field(idx)
 
-			tagFielCurrent := typeCurrent.Elem().Field(idx).Tag.Get("query")
+			tagFieldCurrent := typeCurrent.Elem().Field(idx).Tag.Get("query")
 
-			if len(tagFielCurrent) <= 0 || tagFielCurrent == "-" {
+			if len(tagFieldCurrent) <= 0 || tagFieldCurrent == "-" {
 				return
 			}
 
 			if vFieldCurrent.IsZero() {
-				if strings.HasSuffix(tagFielCurrent, "omitempty") {
+				if strings.HasSuffix(tagFieldCurrent, "omitempty") {
 					return
 				}
 				if vFieldCurrent.Kind() == reflect.String {
