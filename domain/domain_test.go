@@ -17,6 +17,7 @@ var d = New(core.New(
 var (
 	domainName = os.Getenv("TEST_DOMAIN_NAME")
 	orderID    = os.Getenv("TEST_ORDER_ID")
+	cns        = os.Getenv("TEST_CNS")
 )
 
 func TestSuggestNames(t *testing.T) {
@@ -43,6 +44,12 @@ func TestModifyNameServers(t *testing.T) {
 	require.NotNil(t, res)
 
 	res, err = d.ModifyNameServers(orderID, []string{"ns2.domain.asia"})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
+func TestAddChildNameServer(t *testing.T) {
+	res, err := d.AddChildNameServer(orderID, cns, []string{"0.0.0.0", "1.1.1.1"})
 	require.NoError(t, err)
 	require.NotNil(t, res)
 }
