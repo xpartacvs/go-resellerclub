@@ -24,6 +24,7 @@ type Domain interface {
 	GetCustomerDefaultNameServers(customerID int) ([]string, error)
 	GetOrderID(domainName string) (string, error)
 	GetRegistrationOrderDetails(orderID string, options []string) (*OrderDetail, error)
+	ModifyNameServers(orderID string, ns []string) (*ModifyNameServersResponse, error)
 }
 
 func New(c core.Core) Domain {
@@ -284,34 +285,40 @@ func (d *domain) GetRegistrationOrderDetails(orderID string, options []string) (
 	return &orderDetail, nil
 }
 
-func (d *domain) ModifyNameServers(orderID int, ns []string) error {
+func (d *domain) ModifyNameServers(orderID string, ns []string) (*ModifyNameServersResponse, error) {
 	data := make(url.Values)
-	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("order-id", orderID)
 	for _, n := range ns {
 		data.Add("ns", n)
 	}
 
-	resp, err := d.core.CallApi(http.MethodGet, "domains", "modify-ns", data)
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "modify-ns", data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		err = json.Unmarshal(bytesResp, &errResponse)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return errors.New(strings.ToLower(errResponse.Message))
+		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	return nil
+	var result ModifyNameServersResponse
+	err = json.Unmarshal(bytesResp, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 func (d *domain) AddChildNameServer(orderID int, cns string, ips []string) error {

@@ -97,6 +97,18 @@ type OrderDetail struct {
 	IsPrivacyProtected         core.JSONBool   `json:"isprivacyprotected"`
 }
 
+type ModifyNameServersResponse struct {
+	ActionTypeDesc   string `json:"actiontypedesc"`
+	EntityID         string `json:"entityid"`
+	ActionStatus     string `json:"actionstatus"`
+	Status           string `json:"status"`
+	EaqID            string `json:"eaqid"`
+	CurrentAction    string `json:"currentaction"`
+	Description      string `json:"description"`
+	ActionType       string `json:"actiontype"`
+	ActionStatusDesc string `json:"actionstatusdesc"`
+}
+
 const (
 	SortByOrderID          SortBy = "orderid"
 	SortByCustomerID       SortBy = "customerid"

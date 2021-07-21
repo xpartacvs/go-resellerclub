@@ -36,3 +36,13 @@ func TestGetRegistrationOrderDetails(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 }
+
+func TestModifyNameServers(t *testing.T) {
+	res, err := d.ModifyNameServers(orderID, []string{"ns1.domain.asia"})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+
+	res, err = d.ModifyNameServers(orderID, []string{"ns2.domain.asia"})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
