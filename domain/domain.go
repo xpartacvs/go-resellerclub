@@ -330,7 +330,7 @@ func (d *domain) AddChildNameServer(orderID string, cns string, ips []string) (*
 		data.Add("ip", ip)
 	}
 
-	resp, err := d.core.CallApi(http.MethodGet, "domains", "add-cns", data)
+	resp, err := d.core.CallApi(http.MethodPost, "domains", "add-cns", data)
 	if err != nil {
 		return nil, err
 	}
