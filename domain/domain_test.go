@@ -49,7 +49,13 @@ func TestModifyNameServers(t *testing.T) {
 }
 
 func TestAddChildNameServer(t *testing.T) {
-	res, err := d.AddChildNameServer(orderID, cns, []string{"0.0.0.0", "1.1.1.1"})
+	res, err := d.AddChildNameServer(orderID, "new."+domainName, []string{"0.0.0.0", "1.1.1.1"})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
+func TestModifyPrivacyProtectionStatus(t *testing.T) {
+	res, err := d.ModifyPrivacyProtectionStatus(orderID, true, "some reason")
 	require.NoError(t, err)
 	require.NotNil(t, res)
 }
