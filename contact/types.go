@@ -34,11 +34,20 @@ type ContactDetail struct {
 	Fax              string          `json:"-" query:"fax,optional" validate:"omitempty,min=4,max=12"`
 	ClassName        string          `json:"classname,omitempty" query:"-"`
 	ClassKey         string          `json:"classkey,omitempty" query:"-"`
-	EaqId            string          `json:"eaqid,omitempty" query:"-"`
+	EntityActionId   string          `json:"eaqid,omitempty" query:"-"`
 	ActionCompleted  core.JSONUint16 `json:"actioncompleted,omitempty" query:"-"`
 	ContactId        string          `json:"contactid,omitempty" query:"-"`
 	EntityTypeId     string          `json:"entitytypeid,omitempty" query:"-"`
 	Description      string          `json:"description,omitempty" query:"-"`
+}
+
+type Action struct {
+	Id                string `json:"eaqid,omitempty"`
+	EntityId          string `json:"entityid,omitempty"`
+	Type              string `json:"actiontype,omitempty"`
+	Description       string `json:"actiontypedesc,omitempty"`
+	Status            string `json:"actionstatus,omitempty"`
+	StatusDescription string `json:"actionstatusdesc,omitempty"`
 }
 
 const (
