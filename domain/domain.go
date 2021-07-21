@@ -22,6 +22,8 @@ type Domain interface {
 	CheckAvailability(domainsWithoutTLD, tlds []string) (DomainAvailabilities, error)
 	SuggestNames(keyword, tldOnly string, exactMatch, adult bool) (SuggestNames, error)
 	GetCustomerDefaultNameServers(customerID int) ([]string, error)
+	GetOrderID(domainName string) (string, error)
+	GetRegistrationOrderDetails(orderID string, options []string) (*OrderDetail, error)
 }
 
 func New(c core.Core) Domain {
@@ -219,61 +221,67 @@ func (d *domain) GetCustomerDefaultNameServers(customerID int) ([]string, error)
 	return result, nil
 }
 
-func (d *domain) GetOrderID(domainName string) error {
+func (d *domain) GetOrderID(domainName string) (string, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 
-	resp, err := d.core.CallApi(http.MethodGet, "domains", "order-id", data)
+	resp, err := d.core.CallApi(http.MethodGet, "domains", "orderid", data)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		err = json.Unmarshal(bytesResp, &errResponse)
 		if err != nil {
-			return err
+			return "", err
 		}
-		return errors.New(strings.ToLower(errResponse.Message))
+		return "", errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	return nil
+	return string(bytesResp), nil
 }
 
-func (d *domain) GetRegistrationOrderDetails(orderID int, options []string) error {
+func (d *domain) GetRegistrationOrderDetails(orderID string, options []string) (*OrderDetail, error) {
 	data := make(url.Values)
-	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("order-id", orderID)
 	for _, option := range options {
 		data.Add("options", option)
 	}
 
 	resp, err := d.core.CallApi(http.MethodGet, "domains", "details", data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		err = json.Unmarshal(bytesResp, &errResponse)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return errors.New(strings.ToLower(errResponse.Message))
+		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	return nil
+	var orderDetail OrderDetail
+	err = json.Unmarshal(bytesResp, &orderDetail)
+	if err != nil {
+		return nil, err
+	}
+
+	return &orderDetail, nil
 }
 
 func (d *domain) ModifyNameServers(orderID int, ns []string) error {

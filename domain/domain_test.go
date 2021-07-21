@@ -14,8 +14,25 @@ var d = New(core.New(
 	false),
 )
 
+var (
+	domainName = os.Getenv("TEST_DOMAIN_NAME")
+	orderID    = os.Getenv("TEST_ORDER_ID")
+)
+
 func TestSuggestNames(t *testing.T) {
 	res, err := d.SuggestNames("domain", "", false, false)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
+func TestGetOrderID(t *testing.T) {
+	res, err := d.GetOrderID(domainName)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
+func TestGetRegistrationOrderDetails(t *testing.T) {
+	res, err := d.GetRegistrationOrderDetails(orderID, []string{"All"})
 	require.NoError(t, err)
 	require.NotNil(t, res)
 }
