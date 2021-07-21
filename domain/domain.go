@@ -27,6 +27,7 @@ type Domain interface {
 	ModifyNameServers(orderID string, ns []string) (*ModifyNameServersResponse, error)
 	AddChildNameServer(orderID string, cns string, ips []string) (*AddChildNameServerResponse, error)
 	ModifyPrivacyProtectionStatus(orderID string, protectPrivacy bool, reason string) (*ModifyPrivacyProtectionStatusResponse, error)
+	ModifyAuthCode(orderID, authCode string) (*ModifyAuthCodeResponse, error)
 }
 
 func New(c core.Core) Domain {
@@ -520,32 +521,38 @@ func (d *domain) ModifyPrivacyProtectionStatus(orderID string, protectPrivacy bo
 	return &result, nil
 }
 
-func (d *domain) ModifyAuthCode(orderID int, authCode string) error {
+func (d *domain) ModifyAuthCode(orderID, authCode string) (*ModifyAuthCodeResponse, error) {
 	data := make(url.Values)
-	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("order-id", orderID)
 	data.Add("auth-code", authCode)
 
 	resp, err := d.core.CallApi(http.MethodPost, "domains", "modify-auth-code", data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		err = json.Unmarshal(bytesResp, &errResponse)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return errors.New(strings.ToLower(errResponse.Message))
+		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	return nil
+	var result ModifyAuthCodeResponse
+	err = json.Unmarshal(bytesResp, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 func (d *domain) ApplyTheftProtectionLock(orderID int) error {
