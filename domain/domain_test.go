@@ -66,3 +66,9 @@ func TestModifyAuthCode(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 }
+
+func TestApplyTheftProtectionLock(t *testing.T) {
+	res, err := d.ApplyTheftProtectionLock(orderID)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}

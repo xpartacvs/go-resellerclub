@@ -28,12 +28,11 @@ type Domain interface {
 	AddChildNameServer(orderID string, cns string, ips []string) (*AddChildNameServerResponse, error)
 	ModifyPrivacyProtectionStatus(orderID string, protectPrivacy bool, reason string) (*ModifyPrivacyProtectionStatusResponse, error)
 	ModifyAuthCode(orderID, authCode string) (*ModifyAuthCodeResponse, error)
+	ApplyTheftProtectionLock(orderID string) (*ApplyTheftProtectionLockResponse, error)
 }
 
 func New(c core.Core) Domain {
-	return &domain{
-		core: c,
-	}
+	return &domain{c}
 }
 
 func (d *domain) CheckAvailability(domainsWithoutTLD, tlds []string) (DomainAvailabilities, error) {
@@ -555,31 +554,37 @@ func (d *domain) ModifyAuthCode(orderID, authCode string) (*ModifyAuthCodeRespon
 	return &result, nil
 }
 
-func (d *domain) ApplyTheftProtectionLock(orderID int) error {
+func (d *domain) ApplyTheftProtectionLock(orderID string) (*ApplyTheftProtectionLockResponse, error) {
 	data := make(url.Values)
-	data.Add("order-id", strconv.Itoa(orderID))
+	data.Add("order-id", orderID)
 
 	resp, err := d.core.CallApi(http.MethodPost, "domains", "enable-theft-protection", data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		err = json.Unmarshal(bytesResp, &errResponse)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return errors.New(strings.ToLower(errResponse.Message))
+		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	return nil
+	var result ApplyTheftProtectionLockResponse
+	err = json.Unmarshal(bytesResp, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 func (d *domain) RemoveTheftProtectionLock(orderID int) error {
