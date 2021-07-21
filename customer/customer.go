@@ -71,7 +71,6 @@ func (c *customer) AuthenticateToken(token string, withHistory bool) (*CustomerD
 }
 
 func (c *customer) GenerateLoginToken(customerId, ip, dashboardBaseURL string) (LoginToken, error) {
-	// token := LoginToken{}
 	if !core.RgxNumber.MatchString(customerId) {
 		return nil, errors.New("invalid format on customerid")
 	}

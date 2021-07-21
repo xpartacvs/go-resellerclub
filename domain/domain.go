@@ -109,7 +109,7 @@ func (d *domain) SearchOrders(criteria OrderCriteria) error {
 		return err
 	}
 
-	d.core.PrintResponse(bytesResp)
+	core.PrintResponse(bytesResp)
 
 	return nil
 }
