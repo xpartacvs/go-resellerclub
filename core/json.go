@@ -9,6 +9,7 @@ import (
 type JSONBool bool
 type JSONFloat float64
 type JSONTime time.Time
+type JSONTimestamp time.Time
 type JSONUint16 uint16
 type JSONBytes []byte
 
@@ -51,6 +52,20 @@ func (j *JSONTime) UnmarshalJSON(b []byte) error {
 }
 
 func (j JSONTime) ToTime() time.Time {
+	return time.Time(j)
+}
+
+func (j *JSONTimestamp) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), "\"")
+	tValue, err := time.Parse("2006-01-02 15:04:05.999999-07", s)
+	if err != nil {
+		return err
+	}
+	*j = JSONTimestamp(tValue)
+	return nil
+}
+
+func (j JSONTimestamp) ToTime() time.Time {
 	return time.Time(j)
 }
 

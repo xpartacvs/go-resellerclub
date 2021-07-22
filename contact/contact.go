@@ -6,8 +6,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/xpartacvs/go-resellerclub/core"
 )
 
@@ -19,6 +21,76 @@ type Contact interface {
 	Add(detail *ContactDetail, attributes core.EntityAttributes) error
 	Details(contactId string) (*ContactDetail, error)
 	Delete(contactId string) (*Action, error)
+	Search(criteria ContactCriteria, offset, limit uint16) (*ContactSearchResult, error)
+}
+
+func (c *contact) Search(criteria ContactCriteria, offset, limit uint16) (*ContactSearchResult, error) {
+	if offset <= 0 || limit <= 0 {
+		return nil, errors.New("offset or limit must greater than zero")
+	}
+
+	if err := validator.New().Struct(criteria); err != nil {
+		return nil, err
+	}
+
+	data, err := criteria.UrlValues()
+	if err != nil {
+		return nil, err
+	}
+	data.Add("no-of-records", strconv.FormatUint(uint64(limit), 10))
+	data.Add("page-no", strconv.FormatUint(uint64(offset), 10))
+
+	resp, err := c.core.CallApi(http.MethodGet, "contacts", "search", data)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return nil, err
+		}
+		return nil, errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	replacer := strings.NewReplacer("entity.", "", "contact.", "")
+	strResp := replacer.Replace(string(bytesResp))
+
+	var buffer map[string]core.JSONBytes
+	if err := json.Unmarshal([]byte(strResp), &buffer); err != nil {
+		return nil, err
+	}
+
+	var dataBuffers []ContactDetail
+	var numMatched int
+
+	for key, dataBytes := range buffer {
+		switch {
+		case key == "recsindb":
+			numMatched, err = strconv.Atoi(string(dataBytes))
+			if err != nil {
+				numMatched = 0
+			}
+		case key == "result":
+			if err := json.Unmarshal(dataBytes, &dataBuffers); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return &ContactSearchResult{
+		RequestedLimit:  limit,
+		RequestedOffset: offset,
+		Contacts:        dataBuffers,
+		TotalMatched:    numMatched,
+	}, nil
 }
 
 func (c *contact) Delete(contactId string) (*Action, error) {
