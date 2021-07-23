@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/xpartacvs/go-resellerclub/core"
@@ -23,6 +24,90 @@ type Contact interface {
 	Delete(contactId string) (*Action, error)
 	Search(criteria ContactCriteria, offset, limit uint16) (*ContactSearchResult, error)
 	SetDefault(customerId, registrantContactID, adminContactID, techContactID, billingContactID string, types []ContactType) error
+	Default(customerId string, types []ContactType) (map[string]ContactDetail, error)
+}
+
+func (c *contact) Default(customerId string, types []ContactType) (map[string]ContactDetail, error) {
+	if len(types) <= 0 {
+		return nil, errors.New("contact types must not empty")
+	}
+	if !core.RgxNumber.MatchString(customerId) {
+		return nil, core.ErrRcInvalidCredential
+	}
+
+	data := url.Values{}
+	data.Add("customer-id", customerId)
+	for _, t := range types {
+		data.Add("type", string(t))
+	}
+
+	resp, err := c.core.CallApi(http.MethodPost, "contacts", "default", data)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return nil, err
+		}
+		return nil, errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	replacer := strings.NewReplacer("contact.", "", "entity.", "")
+	strResp := replacer.Replace(string(bytesResp))
+	bytesResp = []byte(strResp)
+
+	exoSkeleton := map[string]core.JSONBytes{}
+	err = json.Unmarshal(bytesResp, &exoSkeleton)
+	if err != nil {
+		return nil, err
+	}
+	if len(exoSkeleton) <= 0 {
+		return nil, errors.New("failed while extract exoskeleton")
+	}
+
+	contacts := map[string]core.JSONBytes{}
+	for _, elem := range exoSkeleton {
+		bytesResp = []byte(elem)
+		if err = json.Unmarshal(bytesResp, &contacts); err != nil {
+			return nil, err
+		}
+	}
+
+	wg := sync.WaitGroup{}
+	rwMutex := sync.RWMutex{}
+	defaultContacts := map[string]ContactDetail{}
+
+	for k, v := range contacts {
+		wg.Add(1)
+		go func(key string, val core.JSONBytes) {
+			defer wg.Done()
+			bytesValue := []byte(val)
+			switch key {
+			case "registrant", "type", "tech", "billing", "admin":
+				return
+			default:
+				ctc := ContactDetail{}
+				if err := json.Unmarshal(bytesValue, &ctc); err != nil {
+					return
+				}
+				rwMutex.Lock()
+				defaultContacts[strings.TrimSuffix(key, "ContactDetails")] = ctc
+				rwMutex.Unlock()
+			}
+		}(k, v)
+	}
+	wg.Wait()
+
+	return defaultContacts, nil
 }
 
 func (c *contact) SetDefault(customerId, regContactID, adminContactID, techContactID, billContactID string, types []ContactType) error {
