@@ -13,6 +13,8 @@ import (
 )
 
 type ContactType string
+type Eligibility string
+type RegistrantValidation map[string]map[Eligibility]core.JSONBool
 type ContactDetail struct {
 	Id                   string             `json:"entityid,omitempty" query:"-"`
 	Type                 ContactType        `json:"type,omitempty" query:"type" validate:"required"`
@@ -98,6 +100,15 @@ const (
 	TypeNyc       ContactType = "NycContact"
 	TypeUk        ContactType = "UkContact"
 	TypeUKService ContactType = "UkServiceContact"
+
+	EligibilityDotASIA1 Eligibility = "CED_ASIAN_COUNTRY"
+	EligibilityDotASIA2 Eligibility = "CED_DETAILS"
+	EligibilityDotCA    Eligibility = "CPR"
+	EligibilityDotCOOP  Eligibility = "SPONSORS"
+	EligibilityDotES    Eligibility = "ES_CONTACT_IDENTIFICATION_DETAILS"
+	EligibilityDotEU    Eligibility = "EUROPEAN_COUNTRY"
+	EligibilityDotRU    Eligibility = "RU_CONTACT_INFO"
+	EligibilityDotUS    Eligibility = "APP_PREF_NEXUS"
 )
 
 func (c *ContactCriteria) UrlValues() (url.Values, error) {

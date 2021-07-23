@@ -25,6 +25,61 @@ type Contact interface {
 	Search(criteria ContactCriteria, offset, limit uint16) (*ContactSearchResult, error)
 	SetDefault(customerId, registrantContactID, adminContactID, techContactID, billingContactID string, types []ContactType) error
 	Default(customerId string, types []ContactType) (map[string]ContactDetail, error)
+	ValidateRegistrant(contactId string, eligibilities []Eligibility) (RegistrantValidation, error)
+}
+
+func (c *contact) ValidateRegistrant(contactId string, eligibilities []Eligibility) (RegistrantValidation, error) {
+	if !core.RgxNumber.MatchString(contactId) {
+		return nil, core.ErrRcInvalidCredential
+	}
+
+	if len(eligibilities) <= 0 {
+		return nil, errors.New("eligibilities must not empty")
+	}
+
+	data := url.Values{}
+	data.Add("contact-id", contactId)
+
+	wg := sync.WaitGroup{}
+	rwMutex := sync.RWMutex{}
+	for _, eligibility := range eligibilities {
+		wg.Add(1)
+		go func(e Eligibility) {
+			defer wg.Done()
+			rwMutex.Lock()
+			data.Add("eligibility-criteria", string(e))
+			rwMutex.Unlock()
+		}(eligibility)
+	}
+	wg.Wait()
+
+	resp, err := c.core.CallApi(http.MethodGet, "contacts", "validate-registrant", data)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return nil, err
+		}
+		return nil, errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	validation := RegistrantValidation{}
+	err = json.Unmarshal(bytesResp, &validation)
+	if err != nil {
+		return nil, err
+	}
+
+	return validation, nil
 }
 
 func (c *contact) Default(customerId string, types []ContactType) (map[string]ContactDetail, error) {
