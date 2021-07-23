@@ -22,6 +22,49 @@ type Contact interface {
 	Details(contactId string) (*ContactDetail, error)
 	Delete(contactId string) (*Action, error)
 	Search(criteria ContactCriteria, offset, limit uint16) (*ContactSearchResult, error)
+	SetDefault(customerId, registrantContactID, adminContactID, techContactID, billingContactID string, types []ContactType) error
+}
+
+func (c *contact) SetDefault(customerId, regContactID, adminContactID, techContactID, billContactID string, types []ContactType) error {
+	if len(types) <= 0 {
+		return errors.New("contact types must not empty")
+	}
+	if !core.RgxNumber.MatchString(customerId) || !core.RgxNumber.MatchString(regContactID) || !core.RgxNumber.MatchString(adminContactID) || !core.RgxNumber.MatchString(techContactID) || !core.RgxNumber.MatchString(billContactID) {
+		return core.ErrRcInvalidCredential
+	}
+
+	data := url.Values{}
+	data.Add("customer-id", customerId)
+	data.Add("reg-contact-id", regContactID)
+	data.Add("admin-contact-id", adminContactID)
+	data.Add("tech-contact-id", techContactID)
+	data.Add("billing-contact-id", billContactID)
+
+	for _, t := range types {
+		data.Add("type", string(t))
+	}
+
+	resp, err := c.core.CallApi(http.MethodPost, "contacts", "modDefault", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return nil
 }
 
 func (c *contact) Search(criteria ContactCriteria, offset, limit uint16) (*ContactSearchResult, error) {

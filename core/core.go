@@ -150,24 +150,17 @@ func PrintResponse(data []byte) error {
 }
 
 func (c *core) CallApi(method, namespace, apiName string, data url.Values) (*http.Response, error) {
-	urlPath := c.createUrlPath(namespace, apiName)
+	urlPath := host[c.isProduction] + "/" + namespace + "/" + apiName + ".json"
+	data.Add("auth-userid", c.resellerId)
+	data.Add("api-key", c.apiKey)
+
 	switch method {
 	case http.MethodGet:
-		return http.Get(urlPath + "?" + c.createRequiredQueryString() + "&" + data.Encode())
+		return http.Get(urlPath + "?" + data.Encode())
 	case http.MethodPost:
-		data.Add("auth-userid", c.resellerId)
-		data.Add("api-key", c.apiKey)
 		return http.PostForm(urlPath, data)
 	}
 	return nil, ErrRcApiUnsupportedMethod
-}
-
-func (c *core) createUrlPath(namespace, apiName string) string {
-	return host[c.isProduction] + "/" + namespace + "/" + apiName + ".json"
-}
-
-func (c *core) createRequiredQueryString() string {
-	return "auth-userid=" + url.QueryEscape(c.resellerId) + "&api-key=" + url.QueryEscape(c.apiKey)
 }
 
 func New(resellerId, apiKey string, isProduction bool) Core {
