@@ -17,7 +17,7 @@ type OrderCriteria struct {
 	Statuses        []core.EntityStatus `validate:"omitempty" query:"status,omitempty"`
 	SortOrderBy     []SortOrder         `validate:"omitempty" query:"order-by,omitempty"`
 	OrderIDs        []string            `validate:"omitempty" query:"order-id,omitempty"`
-	DomainKeys      []DomainKey         `validate:"omitempty" query:"product-key,omitempty"`
+	DomainKeys      []core.DomainKey    `validate:"omitempty" query:"product-key,omitempty"`
 	DomainName      string              `validate:"omitempty" query:"domain-name,omitempty"`
 	PrivacyStatus   PrivacyState        `validate:"omitempty" query:"privacy-enabled,omitempty"`
 	ShowChildOrders bool                `validate:"omitempty" query:"show-child-orders,omitempty"`

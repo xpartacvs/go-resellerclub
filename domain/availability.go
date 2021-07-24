@@ -1,7 +1,9 @@
 package domain
 
+import "github.com/xpartacvs/go-resellerclub/core"
+
 type DomainRegistration struct {
-	Key    DomainKey                `json:"classkey"`
+	Key    core.DomainKey           `json:"classkey"`
 	Status DomainRegistrationStatus `json:"status"`
 }
 
