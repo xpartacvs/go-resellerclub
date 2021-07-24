@@ -26,6 +26,64 @@ type Contact interface {
 	SetDefault(customerId, registrantContactID, adminContactID, techContactID, billingContactID string, types []ContactType) error
 	Default(customerId string, types []ContactType) (map[string]ContactDetail, error)
 	ValidateRegistrant(contactId string, eligibilities []Eligibility) (RegistrantValidation, error)
+	AddExtraDetails(contactId string, attributes core.EntityAttributes, domainKeys []core.DomainKey) error
+}
+
+func (c *contact) AddExtraDetails(contactId string, attributes core.EntityAttributes, domainKeys []core.DomainKey) error {
+	if !core.RgxNumber.MatchString(contactId) {
+		return core.ErrRcInvalidCredential
+	}
+
+	if attributes == nil || domainKeys == nil || len(domainKeys) <= 0 {
+		return errors.New("attributes and domain keys cannot be nil or empty")
+	}
+
+	data := url.Values{}
+	data.Add("contact-id", contactId)
+	attributes.CopyTo(&data)
+
+	wg := sync.WaitGroup{}
+	rwMutex := sync.RWMutex{}
+	for _, k := range domainKeys {
+		wg.Add(1)
+		go func(key string) {
+			defer wg.Done()
+			rwMutex.Lock()
+			data.Add("product-key", key)
+			rwMutex.Unlock()
+		}(string(k))
+	}
+	wg.Wait()
+
+	resp, err := c.core.CallApi(http.MethodPost, "contacts", "set-details", data)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return err
+		}
+		return errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	boolResult, err := strconv.ParseBool(string(bytesResp))
+	if err != nil {
+		return err
+	}
+	if !boolResult {
+		return core.ErrRcOperationFailed
+	}
+
+	return nil
 }
 
 func (c *contact) ValidateRegistrant(contactId string, eligibilities []Eligibility) (RegistrantValidation, error) {
