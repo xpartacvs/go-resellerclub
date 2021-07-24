@@ -27,6 +27,45 @@ type Contact interface {
 	Default(customerId string, types []ContactType) (map[string]ContactDetail, error)
 	ValidateRegistrant(contactId string, eligibilities []Eligibility) (RegistrantValidation, error)
 	AddExtraDetails(contactId string, attributes core.EntityAttributes, domainKeys []core.DomainKey) error
+	AddDotCOOPSponsor(customerId string, details ContactDetail) (string, error)
+}
+
+func (c *contact) AddDotCOOPSponsor(customerId string, details ContactDetail) (string, error) {
+	if !core.RgxNumber.MatchString(customerId) {
+		return "", core.ErrRcInvalidCredential
+	}
+
+	if !core.RgxEmail.MatchString(details.Email) {
+		return "", errors.New("invalid format for email")
+	}
+
+	data, err := extractSponsorData(details)
+	if err != nil {
+		return "", err
+	}
+	data.Add("customer-id", customerId)
+
+	resp, err := c.core.CallApi(http.MethodPost, "contacts/coop", "add-sponsor", *data)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	bytesResp, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		errResponse := core.JSONStatusResponse{}
+		err = json.Unmarshal(bytesResp, &errResponse)
+		if err != nil {
+			return "", err
+		}
+		return "", errors.New(strings.ToLower(errResponse.Message))
+	}
+
+	return string(bytesResp), nil
 }
 
 func (c *contact) AddExtraDetails(contactId string, attributes core.EntityAttributes, domainKeys []core.DomainKey) error {
