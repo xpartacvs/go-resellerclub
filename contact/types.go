@@ -174,28 +174,28 @@ func (c *ContactCriteria) UrlValues() (url.Values, error) {
 	return urlValues, nil
 }
 
-func extractSponsorData(c ContactDetail) (*url.Values, error) {
-	valueCurrent := reflect.ValueOf(c)
-	typeCurrent := reflect.TypeOf(c)
+// func extractSponsorData(c ContactDetail) (*url.Values, error) {
+// 	valueCurrent := reflect.ValueOf(c)
+// 	typeCurrent := reflect.TypeOf(c)
 
-	ret := url.Values{}
-	for i := 0; i < valueCurrent.NumField(); i++ {
-		vFieldCurrent := valueCurrent.Field(i)
-		tFieldCurrent := typeCurrent.Field(i)
-		tagFieldCurrent := tFieldCurrent.Tag.Get("sponsor")
-		if len(tagFieldCurrent) <= 0 || tagFieldCurrent == "-" || vFieldCurrent.Kind() != reflect.String {
-			continue
-		}
-		if vFieldCurrent.IsZero() {
-			if !strings.HasSuffix(tagFieldCurrent, ",optional") {
-				return nil, errors.New(strings.ToLower(tFieldCurrent.Name) + " must not empty")
-			}
-			continue
-		}
-		ret.Add(strings.TrimSuffix(tagFieldCurrent, ",optional"), vFieldCurrent.String())
-	}
-	return &ret, nil
-}
+// 	ret := url.Values{}
+// 	for i := 0; i < valueCurrent.NumField(); i++ {
+// 		vFieldCurrent := valueCurrent.Field(i)
+// 		tFieldCurrent := typeCurrent.Field(i)
+// 		tagFieldCurrent := tFieldCurrent.Tag.Get("sponsor")
+// 		if len(tagFieldCurrent) <= 0 || tagFieldCurrent == "-" || vFieldCurrent.Kind() != reflect.String {
+// 			continue
+// 		}
+// 		if vFieldCurrent.IsZero() {
+// 			if !strings.HasSuffix(tagFieldCurrent, ",optional") {
+// 				return nil, errors.New(strings.ToLower(tFieldCurrent.Name) + " must not empty")
+// 			}
+// 			continue
+// 		}
+// 		ret.Add(strings.TrimSuffix(tagFieldCurrent, ",optional"), vFieldCurrent.String())
+// 	}
+// 	return &ret, nil
+// }
 
 func (c *ContactDetail) UrlValues() (*url.Values, error) {
 	v := validator.New()

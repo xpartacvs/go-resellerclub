@@ -27,46 +27,105 @@ type Contact interface {
 	Default(customerId string, types []ContactType) (map[string]ContactDetail, error)
 	ValidateRegistrant(contactId string, eligibilities []Eligibility) (RegistrantValidation, error)
 	AddExtraDetails(contactId string, attributes core.EntityAttributes, domainKeys []core.DomainKey) error
-	AddDotCOOPSponsor(customerId string, details ContactDetail) (string, error)
+	DotCAAgreement() (map[string]string, error)
+	// AddDotCOOPSponsor(customerId string, details ContactDetail) (string, error)
+	// DotCOOPSponsors(customerId string) error
 }
 
-func (c *contact) AddDotCOOPSponsor(customerId string, details ContactDetail) (string, error) {
-	if !core.RgxNumber.MatchString(customerId) {
-		return "", core.ErrRcInvalidCredential
-	}
-
-	if !core.RgxEmail.MatchString(details.Email) {
-		return "", errors.New("invalid format for email")
-	}
-
-	data, err := extractSponsorData(details)
+func (c *contact) DotCAAgreement() (map[string]string, error) {
+	resp, err := c.core.CallApi(http.MethodGet, "contacts/dotca", "registrantagreement", url.Values{})
 	if err != nil {
-		return "", err
-	}
-	data.Add("customer-id", customerId)
-
-	resp, err := c.core.CallApi(http.MethodPost, "contacts/coop", "add-sponsor", *data)
-	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	bytesResp, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResponse := core.JSONStatusResponse{}
 		err = json.Unmarshal(bytesResp, &errResponse)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
-		return "", errors.New(strings.ToLower(errResponse.Message))
+		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	return string(bytesResp), nil
+	ret := map[string]string{}
+	if err = json.Unmarshal(bytesResp, &ret); err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }
+
+// func (c *contact) DotCOOPSponsors(customerId string) error {
+// 	if !core.RgxNumber.MatchString(customerId) {
+// 		return core.ErrRcInvalidCredential
+// 	}
+
+// 	resp, err := c.core.CallApi(http.MethodGet, "contacts", "sponsors", url.Values{"customer-id": []string{customerId}})
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer resp.Body.Close()
+
+// 	bytesResp, err := io.ReadAll(resp.Body)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	if resp.StatusCode != http.StatusOK {
+// 		errResponse := core.JSONStatusResponse{}
+// 		err = json.Unmarshal(bytesResp, &errResponse)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		return errors.New(strings.ToLower(errResponse.Message))
+// 	}
+
+// 	return nil
+// }
+
+// func (c *contact) AddDotCOOPSponsor(customerId string, details ContactDetail) (string, error) {
+// 	if !core.RgxNumber.MatchString(customerId) {
+// 		return "", core.ErrRcInvalidCredential
+// 	}
+
+// 	if !core.RgxEmail.MatchString(details.Email) {
+// 		return "", errors.New("invalid format for email")
+// 	}
+
+// 	data, err := extractSponsorData(details)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	data.Add("customer-id", customerId)
+
+// 	resp, err := c.core.CallApi(http.MethodPost, "contacts/coop", "add-sponsor", *data)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	defer resp.Body.Close()
+
+// 	bytesResp, err := io.ReadAll(resp.Body)
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	if resp.StatusCode != http.StatusOK {
+// 		errResponse := core.JSONStatusResponse{}
+// 		err = json.Unmarshal(bytesResp, &errResponse)
+// 		if err != nil {
+// 			return "", err
+// 		}
+// 		return "", errors.New(strings.ToLower(errResponse.Message))
+// 	}
+
+// 	return string(bytesResp), nil
+// }
 
 func (c *contact) AddExtraDetails(contactId string, attributes core.EntityAttributes, domainKeys []core.DomainKey) error {
 	if !core.RgxNumber.MatchString(contactId) {
