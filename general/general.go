@@ -13,6 +13,7 @@ type general struct {
 type General interface {
 	CurrencyOf(iso CurrencyISO) Currency
 	CountryName(iso CountryISO) string
+	StatesOf(iso CountryISO) (States, error)
 }
 
 func (g *general) CountryName(iso CountryISO) string {
@@ -21,6 +22,10 @@ func (g *general) CountryName(iso CountryISO) string {
 
 func (g *general) CurrencyOf(iso CurrencyISO) Currency {
 	return g.currencies[iso]
+}
+
+func (g *general) StatesOf(iso CountryISO) (States, error) {
+	return fetchStateList(g.core, iso)
 }
 
 func New(c core.Core) (General, error) {
