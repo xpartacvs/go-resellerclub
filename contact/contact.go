@@ -19,7 +19,7 @@ type contact struct {
 }
 
 type Contact interface {
-	Add(detail *ContactDetail, attributes core.EntityAttributes) error
+	Add(details *ContactDetail, attributes core.EntityAttributes) error
 	Details(contactId string) (*ContactDetail, error)
 	Delete(contactId string) (*Action, error)
 	Search(criteria ContactCriteria, offset, limit uint16) (*ContactSearchResult, error)
