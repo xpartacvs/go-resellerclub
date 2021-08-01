@@ -72,3 +72,9 @@ func TestApplyTheftProtectionLock(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 }
+
+func TestGetTheListOfLocksAppliedOnDomainName(t *testing.T) {
+	res, err := d.GetTheListOfLocksAppliedOnDomainName(orderID)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}

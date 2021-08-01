@@ -15,6 +15,22 @@ type SuggestNames map[string]struct {
 	Spin   string         `json:"spin"`
 }
 
+type RegisterResponse struct {
+	ActionTypeDesc          string         `json:"actiontypedesc"`
+	UnutilisedSellingAmount core.JSONFloat `json:"unutilisedsellingamount"`
+	SellingAmount           core.JSONFloat `json:"sellingamount"`
+	EntityID                string         `json:"entityid"`
+	ActionStatus            string         `json:"actionstatus"`
+	Status                  string         `json:"status"`
+	EaqID                   string         `json:"eaqid"`
+	CustomerID              string         `json:"customerid"`
+	Description             string         `json:"description"`
+	ActionType              string         `json:"actiontype"`
+	InvoiceID               string         `json:"invoiceid"`
+	SellingCurrencySymbol   string         `json:"sellingcurrencysymbol"`
+	ActionStatusDesc        string         `json:"actionstatusdesc"`
+}
+
 type Contact struct {
 	Company       string   `json:"company"`
 	Address1      string   `json:"address1"`
@@ -96,19 +112,7 @@ type OrderDetail struct {
 	IsPrivacyProtected         core.JSONBool   `json:"isprivacyprotected"`
 }
 
-type ModifyNameServersResponse struct {
-	ActionTypeDesc   string `json:"actiontypedesc"`
-	EntityID         string `json:"entityid"`
-	ActionStatus     string `json:"actionstatus"`
-	Status           string `json:"status"`
-	EaqID            string `json:"eaqid"`
-	CurrentAction    string `json:"currentaction"`
-	Description      string `json:"description"`
-	ActionType       string `json:"actiontype"`
-	ActionStatusDesc string `json:"actionstatusdesc"`
-}
-
-type AddChildNameServerResponse struct {
+type NameServersResponse struct {
 	ActionTypeDesc   string `json:"actiontypedesc"`
 	EntityID         string `json:"entityid"`
 	ActionStatus     string `json:"actionstatus"`
@@ -149,7 +153,7 @@ type ModifyAuthCodeResponse struct {
 	ActionStatusDesc string `json:"actionstatusdesc"`
 }
 
-type ApplyTheftProtectionLockResponse struct {
+type TheftProtectionLockResponse struct {
 	ActionTypeDesc   string `json:"actiontypedesc"`
 	EntityID         string `json:"entityid"`
 	ActionStatus     string `json:"actionstatus"`
@@ -159,6 +163,22 @@ type ApplyTheftProtectionLockResponse struct {
 	Description      string `json:"description"`
 	ActionType       string `json:"actiontype"`
 	ActionStatusDesc string `json:"actionstatusdesc"`
+}
+
+type GetTheListOfLocksAppliedOnDomainNameResponse struct {
+	TransferLock bool `json:"transferlock"`
+	CustomerLock bool `json:"customerlock"`
+}
+
+type CancelTransferResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+type DeleteResponse struct {
+	Status        string `json:"status"`
+	EaqID         string `json:"eaqid"`
+	CurrentAction string `json:"currentaction"`
 }
 
 const (
