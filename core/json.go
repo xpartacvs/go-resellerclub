@@ -11,6 +11,7 @@ type JSONFloat float64
 type JSONTime time.Time
 type JSONTimestamp time.Time
 type JSONUint16 uint16
+type JSONInt int
 type JSONBytes []byte
 
 func (j *JSONBool) UnmarshalJSON(b []byte) error {
@@ -81,6 +82,20 @@ func (j *JSONUint16) UnmarshalJSON(b []byte) error {
 
 func (j JSONUint16) ToUint16() uint16 {
 	return uint16(j)
+}
+
+func (j *JSONInt) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), "\"")
+	tValue, err := strconv.ParseInt(s, 10, 16)
+	if err != nil {
+		return err
+	}
+	*j = JSONInt(tValue)
+	return nil
+}
+
+func (j JSONInt) ToInt() int {
+	return int(j)
 }
 
 func (j *JSONBytes) UnmarshalJSON(b []byte) error {
