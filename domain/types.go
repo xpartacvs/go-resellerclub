@@ -16,19 +16,20 @@ type SuggestNames map[string]struct {
 }
 
 type RegisterResponse struct {
-	ActionTypeDesc          string         `json:"actiontypedesc"`
-	UnutilisedSellingAmount core.JSONFloat `json:"unutilisedsellingamount"`
-	SellingAmount           core.JSONFloat `json:"sellingamount"`
-	EntityID                string         `json:"entityid"`
-	ActionStatus            string         `json:"actionstatus"`
-	Status                  string         `json:"status"`
-	EaqID                   string         `json:"eaqid"`
-	CustomerID              string         `json:"customerid"`
-	Description             string         `json:"description"`
-	ActionType              string         `json:"actiontype"`
-	InvoiceID               string         `json:"invoiceid"`
-	SellingCurrencySymbol   string         `json:"sellingcurrencysymbol"`
-	ActionStatusDesc        string         `json:"actionstatusdesc"`
+	ActionTypeDesc          string            `json:"actiontypedesc"`
+	UnutilisedSellingAmount core.JSONFloat    `json:"unutilisedsellingamount"`
+	SellingAmount           core.JSONFloat    `json:"sellingamount"`
+	EntityID                string            `json:"entityid"`
+	ActionStatus            string            `json:"actionstatus"`
+	Status                  string            `json:"status"`
+	EaqID                   string            `json:"eaqid"`
+	PremiumDNSDetails       *RegisterResponse `json:"premiumdnsdetails,omitempty"`
+	CustomerID              string            `json:"customerid"`
+	Description             string            `json:"description"`
+	ActionType              string            `json:"actiontype"`
+	InvoiceID               string            `json:"invoiceid"`
+	SellingCurrencySymbol   string            `json:"sellingcurrencysymbol"`
+	ActionStatusDesc        string            `json:"actionstatusdesc"`
 }
 
 type Contact struct {
