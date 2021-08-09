@@ -14,30 +14,30 @@ import (
 
 type DNS interface {
 	ActivatingDNSService(orderID string) (*ActivatingDNSServiceResponse, error)
-	AddingIPv4AddressRecord(domainName, value, host string, ttl int) (*GeneralResponse, error)
-	AddingIPv6AddressRecord(domainName, value, host string, ttl int) (*GeneralResponse, error)
-	AddingCNAMERecord(domainName, value, host string, ttl int) (*GeneralResponse, error)
-	AddingMXRecord(domainName, value, host string, ttl, priority int) (*GeneralResponse, error)
-	AddingNSRecord(domainName, value, host string, ttl int) (*GeneralResponse, error)
-	AddingTXTRecord(domainName, value, host string, ttl int) (*GeneralResponse, error)
-	AddingSRVRecord(domainName, value, host string, ttl, priority, port, weight int) (*GeneralResponse, error)
-	ModifyingIPv4AddressRecord(domainName, host, currentValue, newValue string, ttl int) (*GeneralResponse, error)
-	ModifyingIPv6AddressRecord(domainName, host, currentValue, newValue string, ttl int) (*GeneralResponse, error)
-	ModifyingCNAMERecord(domainName, host, currentValue, newValue string, ttl int) (*GeneralResponse, error)
-	ModifyingMXRecord(domainName, host, currentValue, newValue string, ttl, priority int) (*GeneralResponse, error)
-	ModifyingNSRecord(domainName, host, currentValue, newValue string, ttl int) (*GeneralResponse, error)
-	ModifyingTXTRecord(domainName, host, currentValue, newValue string, ttl int) (*GeneralResponse, error)
-	ModifyingSRVRecord(domainName, host, currentValue, newValue string, ttl, priority, port, weight int) (*GeneralResponse, error)
-	ModifyingSOARecord(domainName, responsiblePerson string, refresh, retry, expire, ttl int) (*GeneralResponse, error)
+	AddingIPv4AddressRecord(domainName, value, host string, ttl int) (*StdResponse, error)
+	AddingIPv6AddressRecord(domainName, value, host string, ttl int) (*StdResponse, error)
+	AddingCNAMERecord(domainName, value, host string, ttl int) (*StdResponse, error)
+	AddingMXRecord(domainName, value, host string, ttl, priority int) (*StdResponse, error)
+	AddingNSRecord(domainName, value, host string, ttl int) (*StdResponse, error)
+	AddingTXTRecord(domainName, value, host string, ttl int) (*StdResponse, error)
+	AddingSRVRecord(domainName, value, host string, ttl, priority, port, weight int) (*StdResponse, error)
+	ModifyingIPv4AddressRecord(domainName, host, currentValue, newValue string, ttl int) (*StdResponse, error)
+	ModifyingIPv6AddressRecord(domainName, host, currentValue, newValue string, ttl int) (*StdResponse, error)
+	ModifyingCNAMERecord(domainName, host, currentValue, newValue string, ttl int) (*StdResponse, error)
+	ModifyingMXRecord(domainName, host, currentValue, newValue string, ttl, priority int) (*StdResponse, error)
+	ModifyingNSRecord(domainName, host, currentValue, newValue string, ttl int) (*StdResponse, error)
+	ModifyingTXTRecord(domainName, host, currentValue, newValue string, ttl int) (*StdResponse, error)
+	ModifyingSRVRecord(domainName, host, currentValue, newValue string, ttl, priority, port, weight int) (*StdResponse, error)
+	ModifyingSOARecord(domainName, responsiblePerson string, refresh, retry, expire, ttl int) (*StdResponse, error)
 	SearchingDNSRecords(domainName, typeRecord string, noOfRecords, pageNo int, host, value string) (*SearchingDNSRecordsResponse, error)
-	DeletingDNSRecord(host, value string) (*GeneralResponse, error)
-	DeletingIPv4AddressRecord(domainName, host, value string) (*GeneralResponse, error)
-	DeletingIPv6AddressRecord(domainName, host, value string) (*GeneralResponse, error)
-	DeletingCNAMERecord(domainName, host, value string) (*GeneralResponse, error)
-	DeletingMXRecord(domainName, host, value string) (*GeneralResponse, error)
-	DeletingNSRecord(domainName, host, value string) (*GeneralResponse, error)
-	DeletingTXTRecord(domainName, host, value string) (*GeneralResponse, error)
-	DeletingSRVRecord(domainName, host, value string, port, weight int) (*GeneralResponse, error)
+	DeletingDNSRecord(host, value string) (*StdResponse, error)
+	DeletingIPv4AddressRecord(domainName, host, value string) (*StdResponse, error)
+	DeletingIPv6AddressRecord(domainName, host, value string) (*StdResponse, error)
+	DeletingCNAMERecord(domainName, host, value string) (*StdResponse, error)
+	DeletingMXRecord(domainName, host, value string) (*StdResponse, error)
+	DeletingNSRecord(domainName, host, value string) (*StdResponse, error)
+	DeletingTXTRecord(domainName, host, value string) (*StdResponse, error)
+	DeletingSRVRecord(domainName, host, value string, port, weight int) (*StdResponse, error)
 }
 
 func New(c core.Core) DNS {
@@ -81,7 +81,7 @@ func (d *dns) ActivatingDNSService(orderID string) (*ActivatingDNSServiceRespons
 	return &result, nil
 }
 
-func (d *dns) AddingIPv4AddressRecord(domainName, value, host string, ttl int) (*GeneralResponse, error) {
+func (d *dns) AddingIPv4AddressRecord(domainName, value, host string, ttl int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("value", value)
@@ -108,7 +108,7 @@ func (d *dns) AddingIPv4AddressRecord(domainName, value, host string, ttl int) (
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (d *dns) AddingIPv4AddressRecord(domainName, value, host string, ttl int) (
 	return &result, nil
 }
 
-func (d *dns) AddingIPv6AddressRecord(domainName, value, host string, ttl int) (*GeneralResponse, error) {
+func (d *dns) AddingIPv6AddressRecord(domainName, value, host string, ttl int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("value", value)
@@ -144,7 +144,7 @@ func (d *dns) AddingIPv6AddressRecord(domainName, value, host string, ttl int) (
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -153,7 +153,7 @@ func (d *dns) AddingIPv6AddressRecord(domainName, value, host string, ttl int) (
 	return &result, nil
 }
 
-func (d *dns) AddingCNAMERecord(domainName, value, host string, ttl int) (*GeneralResponse, error) {
+func (d *dns) AddingCNAMERecord(domainName, value, host string, ttl int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("value", value)
@@ -180,7 +180,7 @@ func (d *dns) AddingCNAMERecord(domainName, value, host string, ttl int) (*Gener
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -189,7 +189,7 @@ func (d *dns) AddingCNAMERecord(domainName, value, host string, ttl int) (*Gener
 	return &result, nil
 }
 
-func (d *dns) AddingMXRecord(domainName, value, host string, ttl, priority int) (*GeneralResponse, error) {
+func (d *dns) AddingMXRecord(domainName, value, host string, ttl, priority int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("value", value)
@@ -217,7 +217,7 @@ func (d *dns) AddingMXRecord(domainName, value, host string, ttl, priority int) 
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -226,7 +226,7 @@ func (d *dns) AddingMXRecord(domainName, value, host string, ttl, priority int) 
 	return &result, nil
 }
 
-func (d *dns) AddingNSRecord(domainName, value, host string, ttl int) (*GeneralResponse, error) {
+func (d *dns) AddingNSRecord(domainName, value, host string, ttl int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("value", value)
@@ -253,7 +253,7 @@ func (d *dns) AddingNSRecord(domainName, value, host string, ttl int) (*GeneralR
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -262,7 +262,7 @@ func (d *dns) AddingNSRecord(domainName, value, host string, ttl int) (*GeneralR
 	return &result, nil
 }
 
-func (d *dns) AddingTXTRecord(domainName, value, host string, ttl int) (*GeneralResponse, error) {
+func (d *dns) AddingTXTRecord(domainName, value, host string, ttl int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("value", value)
@@ -289,7 +289,7 @@ func (d *dns) AddingTXTRecord(domainName, value, host string, ttl int) (*General
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -298,7 +298,7 @@ func (d *dns) AddingTXTRecord(domainName, value, host string, ttl int) (*General
 	return &result, nil
 }
 
-func (d *dns) AddingSRVRecord(domainName, value, host string, ttl, priority, port, weight int) (*GeneralResponse, error) {
+func (d *dns) AddingSRVRecord(domainName, value, host string, ttl, priority, port, weight int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("value", value)
@@ -328,7 +328,7 @@ func (d *dns) AddingSRVRecord(domainName, value, host string, ttl, priority, por
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -337,7 +337,7 @@ func (d *dns) AddingSRVRecord(domainName, value, host string, ttl, priority, por
 	return &result, nil
 }
 
-func (d *dns) ModifyingIPv4AddressRecord(domainName, host, currentValue, newValue string, ttl int) (*GeneralResponse, error) {
+func (d *dns) ModifyingIPv4AddressRecord(domainName, host, currentValue, newValue string, ttl int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -365,7 +365,7 @@ func (d *dns) ModifyingIPv4AddressRecord(domainName, host, currentValue, newValu
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -374,7 +374,7 @@ func (d *dns) ModifyingIPv4AddressRecord(domainName, host, currentValue, newValu
 	return &result, nil
 }
 
-func (d *dns) ModifyingIPv6AddressRecord(domainName, host, currentValue, newValue string, ttl int) (*GeneralResponse, error) {
+func (d *dns) ModifyingIPv6AddressRecord(domainName, host, currentValue, newValue string, ttl int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -402,7 +402,7 @@ func (d *dns) ModifyingIPv6AddressRecord(domainName, host, currentValue, newValu
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -411,7 +411,7 @@ func (d *dns) ModifyingIPv6AddressRecord(domainName, host, currentValue, newValu
 	return &result, nil
 }
 
-func (d *dns) ModifyingCNAMERecord(domainName, host, currentValue, newValue string, ttl int) (*GeneralResponse, error) {
+func (d *dns) ModifyingCNAMERecord(domainName, host, currentValue, newValue string, ttl int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -439,7 +439,7 @@ func (d *dns) ModifyingCNAMERecord(domainName, host, currentValue, newValue stri
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -448,7 +448,7 @@ func (d *dns) ModifyingCNAMERecord(domainName, host, currentValue, newValue stri
 	return &result, nil
 }
 
-func (d *dns) ModifyingMXRecord(domainName, host, currentValue, newValue string, ttl, priority int) (*GeneralResponse, error) {
+func (d *dns) ModifyingMXRecord(domainName, host, currentValue, newValue string, ttl, priority int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -477,7 +477,7 @@ func (d *dns) ModifyingMXRecord(domainName, host, currentValue, newValue string,
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -486,7 +486,7 @@ func (d *dns) ModifyingMXRecord(domainName, host, currentValue, newValue string,
 	return &result, nil
 }
 
-func (d *dns) ModifyingNSRecord(domainName, host, currentValue, newValue string, ttl int) (*GeneralResponse, error) {
+func (d *dns) ModifyingNSRecord(domainName, host, currentValue, newValue string, ttl int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -514,7 +514,7 @@ func (d *dns) ModifyingNSRecord(domainName, host, currentValue, newValue string,
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -523,7 +523,7 @@ func (d *dns) ModifyingNSRecord(domainName, host, currentValue, newValue string,
 	return &result, nil
 }
 
-func (d *dns) ModifyingTXTRecord(domainName, host, currentValue, newValue string, ttl int) (*GeneralResponse, error) {
+func (d *dns) ModifyingTXTRecord(domainName, host, currentValue, newValue string, ttl int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -551,7 +551,7 @@ func (d *dns) ModifyingTXTRecord(domainName, host, currentValue, newValue string
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -560,7 +560,7 @@ func (d *dns) ModifyingTXTRecord(domainName, host, currentValue, newValue string
 	return &result, nil
 }
 
-func (d *dns) ModifyingSRVRecord(domainName, host, currentValue, newValue string, ttl, priority, port, weight int) (*GeneralResponse, error) {
+func (d *dns) ModifyingSRVRecord(domainName, host, currentValue, newValue string, ttl, priority, port, weight int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -591,7 +591,7 @@ func (d *dns) ModifyingSRVRecord(domainName, host, currentValue, newValue string
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -600,7 +600,7 @@ func (d *dns) ModifyingSRVRecord(domainName, host, currentValue, newValue string
 	return &result, nil
 }
 
-func (d *dns) ModifyingSOARecord(domainName, responsiblePerson string, refresh, retry, expire, ttl int) (*GeneralResponse, error) {
+func (d *dns) ModifyingSOARecord(domainName, responsiblePerson string, refresh, retry, expire, ttl int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("responsible-person", responsiblePerson)
@@ -629,7 +629,7 @@ func (d *dns) ModifyingSOARecord(domainName, responsiblePerson string, refresh, 
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -676,7 +676,7 @@ func (d *dns) SearchingDNSRecords(domainName, typeRecord string, noOfRecords, pa
 	return &result, nil
 }
 
-func (d *dns) DeletingDNSRecord(host, value string) (*GeneralResponse, error) {
+func (d *dns) DeletingDNSRecord(host, value string) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("host", host)
 	data.Add("value", value)
@@ -701,7 +701,7 @@ func (d *dns) DeletingDNSRecord(host, value string) (*GeneralResponse, error) {
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -710,7 +710,7 @@ func (d *dns) DeletingDNSRecord(host, value string) (*GeneralResponse, error) {
 	return &result, nil
 }
 
-func (d *dns) DeletingIPv4AddressRecord(domainName, host, value string) (*GeneralResponse, error) {
+func (d *dns) DeletingIPv4AddressRecord(domainName, host, value string) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -736,7 +736,7 @@ func (d *dns) DeletingIPv4AddressRecord(domainName, host, value string) (*Genera
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -745,7 +745,7 @@ func (d *dns) DeletingIPv4AddressRecord(domainName, host, value string) (*Genera
 	return &result, nil
 }
 
-func (d *dns) DeletingIPv6AddressRecord(domainName, host, value string) (*GeneralResponse, error) {
+func (d *dns) DeletingIPv6AddressRecord(domainName, host, value string) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -771,7 +771,7 @@ func (d *dns) DeletingIPv6AddressRecord(domainName, host, value string) (*Genera
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -780,7 +780,7 @@ func (d *dns) DeletingIPv6AddressRecord(domainName, host, value string) (*Genera
 	return &result, nil
 }
 
-func (d *dns) DeletingCNAMERecord(domainName, host, value string) (*GeneralResponse, error) {
+func (d *dns) DeletingCNAMERecord(domainName, host, value string) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -806,7 +806,7 @@ func (d *dns) DeletingCNAMERecord(domainName, host, value string) (*GeneralRespo
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -815,7 +815,7 @@ func (d *dns) DeletingCNAMERecord(domainName, host, value string) (*GeneralRespo
 	return &result, nil
 }
 
-func (d *dns) DeletingMXRecord(domainName, host, value string) (*GeneralResponse, error) {
+func (d *dns) DeletingMXRecord(domainName, host, value string) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -841,7 +841,7 @@ func (d *dns) DeletingMXRecord(domainName, host, value string) (*GeneralResponse
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -850,7 +850,7 @@ func (d *dns) DeletingMXRecord(domainName, host, value string) (*GeneralResponse
 	return &result, nil
 }
 
-func (d *dns) DeletingNSRecord(domainName, host, value string) (*GeneralResponse, error) {
+func (d *dns) DeletingNSRecord(domainName, host, value string) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -876,7 +876,7 @@ func (d *dns) DeletingNSRecord(domainName, host, value string) (*GeneralResponse
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -885,7 +885,7 @@ func (d *dns) DeletingNSRecord(domainName, host, value string) (*GeneralResponse
 	return &result, nil
 }
 
-func (d *dns) DeletingTXTRecord(domainName, host, value string) (*GeneralResponse, error) {
+func (d *dns) DeletingTXTRecord(domainName, host, value string) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -911,7 +911,7 @@ func (d *dns) DeletingTXTRecord(domainName, host, value string) (*GeneralRespons
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
@@ -920,7 +920,7 @@ func (d *dns) DeletingTXTRecord(domainName, host, value string) (*GeneralRespons
 	return &result, nil
 }
 
-func (d *dns) DeletingSRVRecord(domainName, host, value string, port, weight int) (*GeneralResponse, error) {
+func (d *dns) DeletingSRVRecord(domainName, host, value string, port, weight int) (*StdResponse, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("host", host)
@@ -948,7 +948,7 @@ func (d *dns) DeletingSRVRecord(domainName, host, value string, port, weight int
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result GeneralResponse
+	var result StdResponse
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err

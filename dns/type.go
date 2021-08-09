@@ -2,16 +2,15 @@ package dns
 
 import "github.com/xpartacvs/go-resellerclub/core"
 
-type ActivatingDNSServiceResponse struct {
-	Status  string `json:"status"`
-	Msg     string `json:"msg"`
-	ZoneID  string `json:"zoneid"`
-	OrderID string `json:"orderid"`
-}
-
-type GeneralResponse struct {
+type StdResponse struct {
 	Status string `json:"status"`
 	Msg    string `json:"msg"`
+}
+
+type ActivatingDNSServiceResponse struct {
+	StdResponse
+	ZoneID  string `json:"zoneid"`
+	OrderID string `json:"orderid"`
 }
 
 type SearchingDNSRecordsResponse struct {
