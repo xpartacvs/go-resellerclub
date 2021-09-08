@@ -28,11 +28,11 @@ type DNSRecord struct {
 type RecordType string
 
 const (
-	A     RecordType = "A"
-	MX    RecordType = "MX"
-	CNAME RecordType = "CNAME"
-	TXT   RecordType = "TXT"
-	NS    RecordType = "NS"
-	SRV   RecordType = "SRV"
-	AAAA  RecordType = "AAAA"
+	RecordA     RecordType = "A"
+	RecordMX    RecordType = "MX"
+	RecordCNAME RecordType = "CNAME"
+	RecordTXT   RecordType = "TXT"
+	RecordNS    RecordType = "NS"
+	RecordSRV   RecordType = "SRV"
+	RecordAAAA  RecordType = "AAAA"
 )
