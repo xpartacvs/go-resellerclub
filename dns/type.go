@@ -1,7 +1,5 @@
 package dns
 
-import "github.com/xpartacvs/go-resellerclub/core"
-
 type StdResponse struct {
 	Status string `json:"status"`
 	Msg    string `json:"msg"`
@@ -13,16 +11,16 @@ type ActivatingDNSServiceResponse struct {
 	OrderID string `json:"orderid"`
 }
 
-type SearchingDNSRecordsResponse struct {
-	RecSonPage core.JSONUint16 `json:"recsonpage"`
-	RecSinDB   core.JSONUint16 `json:"recsindb"`
-	PageSearchingDNSRecordsResponse
+type SearchingDNSRecords struct {
+	RecsOnPage string
+	Recsindb   string
+	Records    []*DNSRecord
 }
 
-type PageSearchingDNSRecordsResponse map[string]struct {
-	TimeToLive core.JSONInt `json:"timetolive"`
-	Status     string       `json:"status"`
-	Type       string       `json:"type"`
-	Host       string       `json:"host"`
-	Value      string       `json:"value"`
+type DNSRecord struct {
+	TimeToLive string `json:"timetolive,omitempty"`
+	Status     string `json:"status,omitempty"`
+	Type       string `json:"type,omitempty"`
+	Host       string `json:"host,omitempty"`
+	Value      string `json:"value,omitempty"`
 }

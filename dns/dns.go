@@ -3,6 +3,7 @@ package dns
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -29,7 +30,7 @@ type DNS interface {
 	ModifyingTXTRecord(domainName, host, currentValue, newValue string, ttl int) (*StdResponse, error)
 	ModifyingSRVRecord(domainName, host, currentValue, newValue string, ttl, priority, port, weight int) (*StdResponse, error)
 	ModifyingSOARecord(domainName, responsiblePerson string, refresh, retry, expire, ttl int) (*StdResponse, error)
-	SearchingDNSRecords(domainName, typeRecord string, noOfRecords, pageNo int, host, value string) (*SearchingDNSRecordsResponse, error)
+	SearchingDNSRecords(domainName, typeRecord string, noOfRecords, pageNo int, host, value string) (*SearchingDNSRecords, error)
 	DeletingDNSRecord(host, value string) (*StdResponse, error)
 	DeletingIPv4AddressRecord(domainName, host, value string) (*StdResponse, error)
 	DeletingIPv6AddressRecord(domainName, host, value string) (*StdResponse, error)
@@ -638,7 +639,7 @@ func (d *dns) ModifyingSOARecord(domainName, responsiblePerson string, refresh, 
 	return &result, nil
 }
 
-func (d *dns) SearchingDNSRecords(domainName, typeRecord string, noOfRecords, pageNo int, host, value string) (*SearchingDNSRecordsResponse, error) {
+func (d *dns) SearchingDNSRecords(domainName, typeRecord string, noOfRecords, pageNo int, host, value string) (*SearchingDNSRecords, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
 	data.Add("type", typeRecord)
@@ -667,13 +668,43 @@ func (d *dns) SearchingDNSRecords(domainName, typeRecord string, noOfRecords, pa
 		return nil, errors.New(strings.ToLower(errResponse.Message))
 	}
 
-	var result SearchingDNSRecordsResponse
+	var records SearchingDNSRecords
+	var result map[string]interface{}
 	err = json.Unmarshal(bytesResp, &result)
 	if err != nil {
 		return nil, err
 	}
 
-	return &result, nil
+	for k, v := range result {
+		switch k {
+		case "recsonpage":
+			records.RecsOnPage = fmt.Sprintf("%v", v)
+			continue
+		case "recsindb":
+			records.Recsindb = fmt.Sprintf("%v", v)
+			continue
+		}
+
+		_, err := strconv.Atoi(k)
+		if err != nil {
+			return nil, err
+		}
+
+		b, err := json.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+
+		var record DNSRecord
+		err = json.Unmarshal(b, &record)
+		if err != nil {
+			return nil, err
+		}
+
+		records.Records = append(records.Records, &record)
+	}
+
+	return &records, nil
 }
 
 func (d *dns) DeletingDNSRecord(host, value string) (*StdResponse, error) {
