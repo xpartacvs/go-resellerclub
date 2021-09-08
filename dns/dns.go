@@ -30,7 +30,7 @@ type DNS interface {
 	ModifyingTXTRecord(domainName, host, currentValue, newValue string, ttl int) (*StdResponse, error)
 	ModifyingSRVRecord(domainName, host, currentValue, newValue string, ttl, priority, port, weight int) (*StdResponse, error)
 	ModifyingSOARecord(domainName, responsiblePerson string, refresh, retry, expire, ttl int) (*StdResponse, error)
-	SearchingDNSRecords(domainName, typeRecord string, noOfRecords, pageNo int, host, value string) (*SearchingDNSRecords, error)
+	SearchingDNSRecords(domainName string, typeRecord RecordType, noOfRecords, pageNo int, host, value string) (*SearchingDNSRecords, error)
 	DeletingDNSRecord(host, value string) (*StdResponse, error)
 	DeletingIPv4AddressRecord(domainName, host, value string) (*StdResponse, error)
 	DeletingIPv6AddressRecord(domainName, host, value string) (*StdResponse, error)
@@ -639,10 +639,10 @@ func (d *dns) ModifyingSOARecord(domainName, responsiblePerson string, refresh, 
 	return &result, nil
 }
 
-func (d *dns) SearchingDNSRecords(domainName, typeRecord string, noOfRecords, pageNo int, host, value string) (*SearchingDNSRecords, error) {
+func (d *dns) SearchingDNSRecords(domainName string, typeRecord RecordType, noOfRecords, pageNo int, host, value string) (*SearchingDNSRecords, error) {
 	data := make(url.Values)
 	data.Add("domain-name", domainName)
-	data.Add("type", typeRecord)
+	data.Add("type", string(typeRecord))
 	data.Add("no-of-records", strconv.Itoa(noOfRecords))
 	data.Add("page-no", strconv.Itoa(pageNo))
 	data.Add("host", host)
