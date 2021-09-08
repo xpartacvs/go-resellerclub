@@ -24,3 +24,15 @@ type DNSRecord struct {
 	Host       string `json:"host,omitempty"`
 	Value      string `json:"value,omitempty"`
 }
+
+type RecordType string
+
+const (
+	A     RecordType = "A"
+	MX    RecordType = "MX"
+	CNAME RecordType = "CNAME"
+	TXT   RecordType = "TXT"
+	NS    RecordType = "NS"
+	SRV   RecordType = "SRV"
+	AAAA  RecordType = "AAAA"
+)
