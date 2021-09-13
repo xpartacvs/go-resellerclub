@@ -98,6 +98,10 @@ type OrderDetail struct {
 	ProductKey                 string          `json:"productkey"`
 	NS1                        string          `json:"ns1"`
 	NS2                        string          `json:"ns2"`
+	NS3                        string          `json:"ns3"`
+	NS4                        string          `json:"ns4"`
+	NS5                        string          `json:"ns5"`
+	NS6                        string          `json:"ns6"`
 	ActionCompleted            core.JSONUint16 `json:"actioncompleted"`
 	RegistrantContact          Contact         `json:"registrantcontact"`
 	EntityTypeID               string          `json:"entitytypeid"`
